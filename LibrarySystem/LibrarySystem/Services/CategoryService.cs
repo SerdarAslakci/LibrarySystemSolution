@@ -1,4 +1,5 @@
-﻿using LibrarySystem.API.RepositoryInterfaces;
+﻿using LibrarySystem.API.Dtos.CategoryDtos;
+using LibrarySystem.API.RepositoryInterfaces;
 using LibrarySystem.API.ServiceInterfaces;
 using LibrarySystem.Models.Models;
 using Microsoft.Extensions.Logging;
@@ -96,5 +97,34 @@ namespace LibrarySystem.API.Services
             }
         }
 
+        public async Task<IEnumerable<CategoryResultDto>> GetAllCategoriesAsync()
+        {
+            try
+            {
+                _logger.LogInformation("Kategori listesi getiriliyor...");
+
+                var categories = await _categoryRepository.GetAllCategoriesAsync();
+
+                if (!categories.Any())
+                {
+                    _logger.LogWarning("Kategori listesi boş döndü.");
+                }
+                else
+                {
+                    _logger.LogInformation("{Count} kategori başarıyla getirildi.", categories.Count());
+                }
+
+                return categories.Select(c => new CategoryResultDto
+                {
+                    Id = c.Id,
+                    Name = c.Name
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Kategori listesini getirirken bir hata oluştu.");
+                throw;
+            }
+        }
     }
 }

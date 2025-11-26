@@ -1,4 +1,5 @@
-﻿using LibrarySystem.Models.Models;
+﻿using LibrarySystem.API.Dtos.CategoryDtos;
+using LibrarySystem.Models.Models;
 
 namespace LibrarySystem.API.ServiceInterfaces
 {
@@ -8,7 +9,7 @@ namespace LibrarySystem.API.ServiceInterfaces
         Task<Category> AddCategoryAsync(Category category);
         Task<Category?> GetByIdAsync(int id);
         Task<Category?> GetByNameAsync(string name);
-
         Task<Category> GetOrCreateAsync(int? id, string? name);
+        Task<IEnumerable<CategoryResultDto>> GetAllCategoriesAsync();
     }
 }

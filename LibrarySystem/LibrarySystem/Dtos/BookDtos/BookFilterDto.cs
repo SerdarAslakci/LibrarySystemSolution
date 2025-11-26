@@ -4,8 +4,8 @@ namespace LibrarySystem.API.Dtos.BookDtos
 {
     public class BookFilterDto
     {
-        public int Page { get; set; } = 0;
-        public int Size { get; set; } = 12;
+        public int? Size { get; set; } = 12;
+        public int? Page { get; set; } = 1;
         public string? Title { get; set; }
         public int? CategoryId { get; set; }
         public int? PublicationYearFrom { get; set; }

@@ -219,6 +219,7 @@ namespace LibrarySystem.API.Controllers
         public async Task<IActionResult> GetAllBooks([FromQuery] BookFilterDto filterDto)
         {
             _logger.LogInformation("Tüm kitapları getirme isteği. Filtreler: Başlık={Title}, Kategori={Category}, Page={Page}", filterDto?.Title, filterDto?.CategoryId, filterDto?.Page);
+
             try
             {
                 var books = await _bookService.GetAllBooksAsync(filterDto);

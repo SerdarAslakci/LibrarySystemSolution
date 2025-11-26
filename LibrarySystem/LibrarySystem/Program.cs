@@ -10,8 +10,19 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .WriteTo.Console()
+    .WriteTo.File("Logs/log-.txt",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 30)
+    .CreateLogger();
+
 
 
 builder.Services.AddSwaggerGen(option =>
@@ -97,6 +108,9 @@ builder.Services.AddAuthentication(options =>
 
     };
 });
+
+
+builder.Host.UseSerilog();
 
 builder.Services.AddControllers().AddNewtonsoftJson(options => {
     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;

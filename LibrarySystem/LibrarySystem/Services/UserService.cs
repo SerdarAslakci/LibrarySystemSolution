@@ -3,6 +3,7 @@ using LibrarySystem.API.Dtos.UserDtos;
 using LibrarySystem.API.RepositoryInterfaces;
 using LibrarySystem.API.ServiceInterfaces;
 using LibrarySystem.Models.Models;
+using Microsoft.Extensions.Logging;
 
 namespace LibrarySystem.API.Services
 {
@@ -10,11 +11,13 @@ namespace LibrarySystem.API.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
+        private readonly ILogger<UserService> _logger;
 
-        public UserService(IUserRepository userRepository, IMapper mapper)
+        public UserService(IUserRepository userRepository, IMapper mapper, ILogger<UserService> logger)
         {
             _userRepository = userRepository;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<IEnumerable<UserViewDto>> GetUsersForListingAsync(string? roleFilter = null)
@@ -26,7 +29,10 @@ namespace LibrarySystem.API.Services
                 users = await _userRepository.GetUsersInRoleAsync(roleFilter);
 
                 if (!users.Any())
+                {
+                    _logger.LogWarning("Kullanıcı listeleme uyarısı: '{Role}' rolüne ait kullanıcı bulunamadı.", roleFilter);
                     throw new KeyNotFoundException($"'{roleFilter}' rolüne ait kullanıcı bulunamadı.");
+                }
             }
             else
             {
@@ -41,7 +47,10 @@ namespace LibrarySystem.API.Services
             var user = await _userRepository.GetUserByIdAsync(userId);
 
             if (user == null)
+            {
+                _logger.LogWarning("Kullanıcı detayı sorgulama başarısız: ID '{UserId}' bulunamadı.", userId);
                 throw new KeyNotFoundException($"ID değeri '{userId}' olan kullanıcı bulunamadı.");
+            }
 
             return _mapper.Map<UserViewDto>(user);
         }
@@ -51,7 +60,10 @@ namespace LibrarySystem.API.Services
             var user = await _userRepository.GetUserByEmailAsync(email);
 
             if (user == null)
+            {
+                _logger.LogWarning("Kullanıcı detayı sorgulama başarısız: Email '{Email}' bulunamadı.", email);
                 throw new KeyNotFoundException($"'{email}' email adresine sahip kullanıcı bulunamadı.");
+            }
 
             return _mapper.Map<UserViewDto>(user);
         }

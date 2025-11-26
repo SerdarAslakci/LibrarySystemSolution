@@ -6,6 +6,7 @@ using LibrarySystem.API.Repositories;
 using LibrarySystem.API.RepositoryInterfaces;
 using LibrarySystem.API.ServiceInterfaces;
 using LibrarySystem.Models.Models;
+using Microsoft.Extensions.Logging;
 
 namespace LibrarySystem.API.Services
 {
@@ -17,6 +18,7 @@ namespace LibrarySystem.API.Services
         private readonly IPublisherService _publisherService;
         private readonly IShelfService _shelfService;
         private readonly IRoomService _roomService;
+        private readonly ILogger<BookService> _logger;
 
         public BookService(
             IBookRepository bookRepository,
@@ -24,7 +26,8 @@ namespace LibrarySystem.API.Services
             ICategoryService categoryService,
             IPublisherService publisherService,
             IShelfService shelfService,
-            IRoomService roomService
+            IRoomService roomService,
+            ILogger<BookService> logger
             )
         {
             _bookRepository = bookRepository;
@@ -33,12 +36,18 @@ namespace LibrarySystem.API.Services
             _publisherService = publisherService;
             _shelfService = shelfService;
             _roomService = roomService;
+            _logger = logger;
         }
 
         public async Task<Book> AddBookAsync(CreateBookDto dto)
         {
+            _logger.LogInformation("Yeni kitap ekleme işlemi başlatıldı. Başlık: {Title}, ISBN: {ISBN}", dto?.Title, dto?.ISBN);
+
             if (dto == null)
+            {
+                _logger.LogWarning("Kitap ekleme başarısız: DTO boş.");
                 throw new ArgumentNullException(nameof(dto));
+            }
 
             Author author = await _authorService.GetOrCreateAsync(
                 dto.AuthorId, dto.AuthorFirstName, dto.AuthorLastName);
@@ -75,6 +84,8 @@ namespace LibrarySystem.API.Services
                 await this.AddBookAuthorAsync(bookAuthor);
             }
 
+            _logger.LogInformation("Kitap başarıyla eklendi. ID: {BookId}, Başlık: {Title}", addedBook.Id, addedBook.Title);
+
             return addedBook;
         }
         public async Task<BookAuthor> AddBookAuthorAsync(BookAuthor bookAuthor)
@@ -83,7 +94,10 @@ namespace LibrarySystem.API.Services
                 throw new ArgumentNullException(nameof(bookAuthor));
 
             if (bookAuthor.BookId <= 0 || bookAuthor.AuthorId <= 0)
+            {
+                _logger.LogWarning("Kitap-Yazar ilişkisi eklenemedi: Geçersiz ID'ler. BookId: {BookId}, AuthorId: {AuthorId}", bookAuthor.BookId, bookAuthor.AuthorId);
                 throw new ArgumentException("Geçerli Kitap veya Yazar ID'si belirtilmelidir.");
+            }
 
             bool exists = await _bookRepository.IsBookAuthorExistsAsync(
                 bookAuthor.BookId,
@@ -92,6 +106,7 @@ namespace LibrarySystem.API.Services
 
             if (exists)
             {
+                _logger.LogWarning("Kitap-Yazar ilişkisi zaten mevcut. BookId: {BookId}, AuthorId: {AuthorId}", bookAuthor.BookId, bookAuthor.AuthorId);
                 throw new InvalidOperationException(
                     $"Kitap ID'si {bookAuthor.BookId} ve Yazar ID'si {bookAuthor.AuthorId} olan ilişki zaten mevcut."
                 );
@@ -100,18 +115,27 @@ namespace LibrarySystem.API.Services
 
             var added = await _bookRepository.AddBookAuthorAsync(bookAuthor);
 
+            _logger.LogInformation("Kitap-Yazar ilişkisi kuruldu. BookId: {BookId}, AuthorId: {AuthorId}", bookAuthor.BookId, bookAuthor.AuthorId);
+
             return added;
         }
         public async Task<BookCopy> AddBookCopyAsync(CreateBookCopyDto createBookCopyDto)
         {
+            _logger.LogInformation("Kitap kopyası ekleniyor. BookId: {BookId}, Barkod: {Barcode}", createBookCopyDto.BookId, createBookCopyDto.BarcodeNumber);
 
             var book = await _bookRepository.GetBookByIdAsync(createBookCopyDto.BookId);
             if (book == null)
+            {
+                _logger.LogWarning("Kitap kopyası eklenemedi: Ana kitap bulunamadı. BookId: {BookId}", createBookCopyDto.BookId);
                 throw new KeyNotFoundException($"ID {createBookCopyDto.BookId} ile kayıtlı bir kitap bulunamadı.");
+            }
 
             var room = await _roomService.GetRoomByIdAsync(createBookCopyDto.RoomId);
             if (room == null)
+            {
+                _logger.LogWarning("Kitap kopyası eklenemedi: Oda bulunamadı. RoomId: {RoomId}", createBookCopyDto.RoomId);
                 throw new KeyNotFoundException($"ID {createBookCopyDto.RoomId} ile kayıtlı bir oda bulunamadı.");
+            }
 
             var shelf = await _shelfService.GetShelfByCodeAndRoomIdAsync(
                 createBookCopyDto.ShelfCode,
@@ -136,7 +160,11 @@ namespace LibrarySystem.API.Services
                 IsAvailable = true
             };
 
-            return await _bookRepository.AddBookCopyAsync(bookCopy);
+            var result = await _bookRepository.AddBookCopyAsync(bookCopy);
+
+            _logger.LogInformation("Kitap kopyası başarıyla eklendi. CopyId: {CopyId}, Barkod: {Barcode}", result.Id, result.BarcodeNumber);
+
+            return result;
         }
 
 
@@ -148,7 +176,10 @@ namespace LibrarySystem.API.Services
 
             var existingBook = await _bookRepository.GetBookByIdAsync(id);
             if (existingBook == null)
+            {
+                _logger.LogWarning("Kitap güncelleme başarısız: Kitap bulunamadı. ID: {BookId}", id);
                 throw new KeyNotFoundException($"ID {id} ile kayıtlı kitap bulunamadı.");
+            }
 
             Author author = await _authorService.GetOrCreateAsync(
                 updateBookDto.AuthorId, updateBookDto.AuthorFirstName, updateBookDto.AuthorLastName);
@@ -186,6 +217,8 @@ namespace LibrarySystem.API.Services
                 }
             }
 
+            _logger.LogInformation("Kitap bilgileri güncellendi. ID: {BookId}", id);
+
             return updatedBook;
         }
 
@@ -193,9 +226,17 @@ namespace LibrarySystem.API.Services
         {
             var existingBook = await _bookRepository.GetBookByIdAsync(id);
             if (existingBook == null)
+            {
+                _logger.LogWarning("Kitap silme başarısız: Kitap bulunamadı. ID: {BookId}", id);
                 throw new KeyNotFoundException($"ID {id} ile kayıtlı kitap bulunamadı.");
+            }
 
-            return await _bookRepository.DeleteBookAsync(id);
+            var result = await _bookRepository.DeleteBookAsync(id);
+            if (result)
+            {
+                _logger.LogInformation("Kitap silindi. ID: {BookId}", id);
+            }
+            return result;
         }
 
         public async Task<Book?> GetBookByIdAsync(int id)
@@ -203,7 +244,12 @@ namespace LibrarySystem.API.Services
             if (id <= 0)
                 throw new ArgumentException("Geçerli bir kitap ID'si belirtilmelidir.", nameof(id));
 
-            return await _bookRepository.GetBookByIdAsync(id);
+            var book = await _bookRepository.GetBookByIdAsync(id);
+            if (book == null)
+            {
+                _logger.LogWarning("Kitap sorgulama: ID {BookId} bulunamadı.", id);
+            }
+            return book;
         }
 
         public async Task<Book?> GetBookWithDetailsAsync(int id)
@@ -211,7 +257,12 @@ namespace LibrarySystem.API.Services
             if (id <= 0)
                 throw new ArgumentException("Geçerli bir kitap ID'si belirtilmelidir.", nameof(id));
 
-            return await _bookRepository.GetBookWithDetailsAsync(id);
+            var book = await _bookRepository.GetBookWithDetailsAsync(id);
+            if (book == null)
+            {
+                _logger.LogWarning("Detaylı kitap sorgulama: ID {BookId} bulunamadı.", id);
+            }
+            return book;
         }
 
         public async Task<IEnumerable<Book>> GetAllBooksAsync(BookFilterDto filterDto)
@@ -234,7 +285,10 @@ namespace LibrarySystem.API.Services
 
             var existingCopy = await _bookRepository.GetBookCopyByIdAsync(id);
             if (existingCopy == null)
+            {
+                _logger.LogWarning("Kitap kopyası güncelleme başarısız: Kopya bulunamadı. ID: {CopyId}", id);
                 throw new KeyNotFoundException($"ID {id} ile kayıtlı kitap kopyası bulunamadı.");
+            }
 
             var bookCopyToUpdate = new BookCopy
             {
@@ -260,19 +314,34 @@ namespace LibrarySystem.API.Services
             {
                 var bookExists = await _bookRepository.GetBookByIdAsync(updateBookCopyDto.BookId.Value);
                 if (bookExists == null)
+                {
+                    _logger.LogWarning("Kitap kopyası güncelleme başarısız: Yeni referans kitap bulunamadı. BookId: {BookId}", updateBookCopyDto.BookId.Value);
                     throw new KeyNotFoundException($"ID {updateBookCopyDto.BookId.Value} ile kayıtlı ana kitap bulunamadı.");
+                }
             }
 
-            return await _bookRepository.UpdateBookCopyAsync(id, bookCopyToUpdate);
+            var updatedCopy = await _bookRepository.UpdateBookCopyAsync(id, bookCopyToUpdate);
+
+            _logger.LogInformation("Kitap kopyası güncellendi. ID: {CopyId}", id);
+
+            return updatedCopy;
         }
 
         public async Task<bool> DeleteBookCopyAsync(int id)
         {
             var existingCopy = await _bookRepository.GetBookCopyByIdAsync(id);
             if (existingCopy == null)
+            {
+                _logger.LogWarning("Kitap kopyası silme başarısız: Kopya bulunamadı. ID: {CopyId}", id);
                 throw new KeyNotFoundException($"ID {id} ile kayıtlı kitap kopyası bulunamadı.");
+            }
 
-            return await _bookRepository.DeleteBookCopyAsync(id);
+            var result = await _bookRepository.DeleteBookCopyAsync(id);
+            if (result)
+            {
+                _logger.LogInformation("Kitap kopyası silindi. ID: {CopyId}", id);
+            }
+            return result;
         }
 
         public async Task<BookCopy?> GetBookCopyByBarcodeAsync(string barcode)
@@ -283,15 +352,26 @@ namespace LibrarySystem.API.Services
             var bookCopy = await _bookRepository.GetBookCopyByBarcodeAsync(barcode);
 
             if (bookCopy == null)
+            {
+                _logger.LogWarning("Barkod ile sorgulama başarısız: {Barcode}", barcode);
                 throw new KeyNotFoundException($"Barkod '{barcode}' ile eşleşen kitap bulunamadı.");
+            }
 
             return bookCopy;
         }
 
         public async Task<bool> SetBookCopyUnAvailableAsync(int bookCopyId)
         {
-            return await _bookRepository.SetBookCopyUnAvailableAsync(bookCopyId);
+            var result = await _bookRepository.SetBookCopyUnAvailableAsync(bookCopyId);
+            if (result)
+            {
+                _logger.LogInformation("Kitap kopyası 'Müsait Değil' olarak işaretlendi. ID: {CopyId}", bookCopyId);
+            }
+            else
+            {
+                _logger.LogWarning("Kitap kopyası durumu değiştirilemedi. ID: {CopyId}", bookCopyId);
+            }
+            return result;
         }
     }
-
 }

@@ -1,28 +1,41 @@
 ﻿using LibrarySystem.API.RepositoryInterfaces;
 using LibrarySystem.API.ServiceInterfaces;
 using LibrarySystem.Models.Models;
+using Microsoft.Extensions.Logging;
 
 namespace LibrarySystem.API.Services
 {
     public class CategoryService : ICategoryService
     {
         private readonly ICategoryRepository _categoryRepository;
+        private readonly ILogger<CategoryService> _logger;
 
-        public CategoryService(ICategoryRepository categoryRepository)
+        public CategoryService(ICategoryRepository categoryRepository, ILogger<CategoryService> logger)
         {
             _categoryRepository = categoryRepository;
+            _logger = logger;
         }
 
         public async Task<Category> AddCategoryAsync(Category category)
         {
+            _logger.LogInformation("Yeni kategori ekleme işlemi başlatıldı: {CategoryName}", category?.Name);
+
             if (category == null)
+            {
+                _logger.LogWarning("Kategori ekleme başarısız: Kategori nesnesi null.");
                 throw new ArgumentNullException(nameof(category));
+            }
 
             var exists = await IsExistsAsync(category.Name);
             if (exists)
+            {
+                _logger.LogWarning("Kategori ekleme başarısız: '{CategoryName}' zaten mevcut.", category.Name);
                 throw new InvalidOperationException("Bu kategori zaten mevcut.");
+            }
 
             await _categoryRepository.AddCategoryAsync(category);
+
+            _logger.LogInformation("Kategori başarıyla eklendi. ID: {Id}, İsim: {Name}", category.Id, category.Name);
 
             return category;
         }
@@ -39,7 +52,10 @@ namespace LibrarySystem.API.Services
         {
             var category = await _categoryRepository.GetByIdAsync(id);
             if (category == null)
+            {
+                _logger.LogWarning("Kategori sorgulama başarısız: ID {Id} bulunamadı.", id);
                 throw new KeyNotFoundException($"ID'si {id} olan kategori bulunamadı.");
+            }
 
             return category;
         }
@@ -48,7 +64,10 @@ namespace LibrarySystem.API.Services
         {
             var category = await _categoryRepository.GetByNameAsync(name);
             if (category == null)
+            {
+                _logger.LogWarning("Kategori sorgulama başarısız: '{Name}' bulunamadı.", name);
                 throw new KeyNotFoundException($"Adı '{name}' olan kategori bulunamadı.");
+            }
 
             return category;
         }
@@ -61,7 +80,10 @@ namespace LibrarySystem.API.Services
             }
 
             if (string.IsNullOrWhiteSpace(name))
+            {
+                _logger.LogWarning("GetOrCreate başarısız: İsim parametresi boş.");
                 throw new ArgumentException("Kategori adı boş olamaz.");
+            }
 
             try
             {
@@ -69,11 +91,10 @@ namespace LibrarySystem.API.Services
             }
             catch (KeyNotFoundException)
             {
+                _logger.LogInformation("GetOrCreate: '{Name}' bulunamadı, yeni oluşturuluyor.", name);
                 return await AddCategoryAsync(new Category { Name = name });
             }
         }
 
     }
-
-
 }

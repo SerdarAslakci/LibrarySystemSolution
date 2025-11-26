@@ -5,6 +5,7 @@ using LibrarySystem.Models.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace LibrarySystem.API.Controllers
 {
@@ -13,10 +14,12 @@ namespace LibrarySystem.API.Controllers
     public class BookController : ControllerBase
     {
         private readonly IBookService _bookService;
+        private readonly ILogger<BookController> _logger;
 
-        public BookController(IBookService bookService)
+        public BookController(IBookService bookService, ILogger<BookController> logger)
         {
             _bookService = bookService;
+            _logger = logger;
         }
 
         [Authorize]
@@ -24,28 +27,38 @@ namespace LibrarySystem.API.Controllers
         [Route("add-book")]
         public async Task<IActionResult> AddBook([FromBody] CreateBookDto dto)
         {
+            _logger.LogInformation("Kitap ekleme isteği alındı. Başlık: {Title}, ISBN: {ISBN}", dto?.Title, dto?.ISBN);
+
             if (dto == null)
+            {
+                _logger.LogWarning("Kitap ekleme başarısız: Gönderilen veri boş.");
                 return BadRequest("Kitap bilgisi boş olamaz.");
+            }
 
             try
             {
                 var book = await _bookService.AddBookAsync(dto);
+                _logger.LogInformation("Kitap başarıyla eklendi. ID: {BookId}", book.Id);
                 return Ok(book);
             }
             catch (ArgumentException ex)
             {
+                _logger.LogWarning(ex, "Kitap ekleme hatası (Argüman): {Message}", ex.Message);
                 return BadRequest(ex.Message);
             }
             catch (InvalidOperationException ex)
             {
+                _logger.LogWarning(ex, "Kitap ekleme hatası (Çakışma): {Message}", ex.Message);
                 return Conflict(ex.Message);
             }
             catch (KeyNotFoundException ex)
             {
+                _logger.LogWarning(ex, "Kitap ekleme hatası (Bulunamadı): {Message}", ex.Message);
                 return NotFound(ex.Message);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Kitap ekleme sırasında sunucu hatası.");
                 return StatusCode(500, $"Beklenmedik bir hata oluştu: {ex.Message}");
             }
         }
@@ -55,24 +68,33 @@ namespace LibrarySystem.API.Controllers
         [Route("update-book/{id}")]
         public async Task<IActionResult> UpdateBook(int id, [FromBody] CreateBookDto dto)
         {
-            if(!ModelState.IsValid)
+            _logger.LogInformation("Kitap güncelleme isteği. ID: {BookId}", id);
+
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Kitap güncelleme validasyon hatası. ID: {BookId}", id);
                 return BadRequest(new { Success = false, Message = "Geçersiz model durumu.", Errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+            }
 
             try
             {
                 var updatedBook = await _bookService.UpdateBookAsync(id, dto);
+                _logger.LogInformation("Kitap başarıyla güncellendi. ID: {BookId}", id);
                 return Ok(updatedBook);
             }
             catch (ArgumentException ex)
             {
+                _logger.LogWarning("Kitap güncelleme hatası (Argüman): {Message}", ex.Message);
                 return BadRequest(new { Success = false, Message = ex.Message });
             }
             catch (KeyNotFoundException ex)
             {
+                _logger.LogWarning("Kitap güncelleme hatası (Bulunamadı): ID {BookId}", id);
                 return NotFound(new { Success = false, Message = ex.Message });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Kitap güncelleme sırasında sunucu hatası. ID: {BookId}", id);
                 return StatusCode(500, new
                 {
                     Success = false,
@@ -87,6 +109,8 @@ namespace LibrarySystem.API.Controllers
         [Route("delete-book/{id}")]
         public async Task<IActionResult> DeleteBook(int id)
         {
+            _logger.LogInformation("Kitap silme isteği. ID: {BookId}", id);
+
             if (id <= 0)
                 return BadRequest(new { Success = false, Message = "Geçersiz kitap ID'si." });
 
@@ -95,20 +119,24 @@ namespace LibrarySystem.API.Controllers
                 var result = await _bookService.DeleteBookAsync(id);
                 if (result)
                 {
+                    _logger.LogInformation("Kitap başarıyla silindi. ID: {BookId}", id);
                     return Ok(new
                     {
                         Success = true,
                         Message = "Kitap başarıyla silindi."
                     });
                 }
+                _logger.LogWarning("Kitap silinemedi (Bulunamadı veya işlem başarısız). ID: {BookId}", id);
                 return NotFound(new { Success = false, Message = "Kitap bulunamadı." });
             }
             catch (KeyNotFoundException ex)
             {
+                _logger.LogWarning("Kitap silme hatası (Bulunamadı): {Message}", ex.Message);
                 return NotFound(new { Success = false, Message = ex.Message });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Kitap silme sırasında sunucu hatası. ID: {BookId}", id);
                 return StatusCode(500, new
                 {
                     Success = false,
@@ -129,7 +157,10 @@ namespace LibrarySystem.API.Controllers
             {
                 var book = await _bookService.GetBookByIdAsync(id);
                 if (book == null)
+                {
+                    _logger.LogWarning("Kitap getirme başarısız: ID {BookId} bulunamadı.", id);
                     return NotFound(new { Success = false, Message = "Kitap bulunamadı." });
+                }
 
                 return Ok(book);
             }
@@ -139,6 +170,7 @@ namespace LibrarySystem.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Kitap getirme sırasında sunucu hatası. ID: {BookId}", id);
                 return StatusCode(500, new
                 {
                     Success = false,
@@ -159,7 +191,10 @@ namespace LibrarySystem.API.Controllers
             {
                 var book = await _bookService.GetBookWithDetailsAsync(id);
                 if (book == null)
+                {
+                    _logger.LogWarning("Detaylı kitap getirme başarısız: ID {BookId} bulunamadı.", id);
                     return NotFound(new { Success = false, Message = "Kitap bulunamadı." });
+                }
 
                 return Ok(book);
             }
@@ -169,6 +204,7 @@ namespace LibrarySystem.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Detaylı kitap getirme sırasında sunucu hatası. ID: {BookId}", id);
                 return StatusCode(500, new
                 {
                     Success = false,
@@ -182,6 +218,7 @@ namespace LibrarySystem.API.Controllers
         [Route("get-all-books")]
         public async Task<IActionResult> GetAllBooks([FromQuery] BookFilterDto filterDto)
         {
+            _logger.LogInformation("Tüm kitapları getirme isteği. Filtreler: Başlık={Title}, Kategori={Category}", filterDto?.Title, filterDto?.CategoryId);
             try
             {
                 var books = await _bookService.GetAllBooksAsync(filterDto);
@@ -189,6 +226,7 @@ namespace LibrarySystem.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Tüm kitapları getirme sırasında sunucu hatası.");
                 return StatusCode(500, new
                 {
                     Success = false,
@@ -203,24 +241,30 @@ namespace LibrarySystem.API.Controllers
         [Route("add-book-author")]
         public async Task<IActionResult> AddBookAuthor([FromBody] BookAuthor bookAuthor)
         {
+            _logger.LogInformation("Kitap-Yazar ilişkisi ekleme isteği. BookId: {BookId}, AuthorId: {AuthorId}", bookAuthor?.BookId, bookAuthor?.AuthorId);
+
             if (bookAuthor == null)
                 return BadRequest(new { Success = false, Message = "Kitap-Yazar bilgisi boş olamaz." });
 
             try
             {
                 var added = await _bookService.AddBookAuthorAsync(bookAuthor);
+                _logger.LogInformation("Kitap-Yazar ilişkisi eklendi.");
                 return Ok(added);
             }
             catch (ArgumentException ex)
             {
+                _logger.LogWarning("Kitap-Yazar ekleme hatası (Argüman): {Message}", ex.Message);
                 return BadRequest(new { Success = false, Message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
+                _logger.LogWarning("Kitap-Yazar ekleme hatası (Çakışma): {Message}", ex.Message);
                 return Conflict(new { Success = false, Message = ex.Message });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Kitap-Yazar ekleme sırasında sunucu hatası.");
                 return StatusCode(500, new
                 {
                     Success = false,
@@ -248,6 +292,7 @@ namespace LibrarySystem.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Kitap-Yazar kontrolü sırasında sunucu hatası.");
                 return StatusCode(500, new
                 {
                     Success = false,
@@ -262,20 +307,25 @@ namespace LibrarySystem.API.Controllers
         [Route("add-book-copy")]
         public async Task<IActionResult> AddBookCopy([FromBody] CreateBookCopyDto dto)
         {
+            _logger.LogInformation("Kitap kopyası ekleme isteği. BookId: {BookId}, Barkod: {Barcode}", dto?.BookId, dto?.BarcodeNumber);
+
             if (dto == null)
                 return BadRequest(new { Success = false, Message = "Kitap kopyası bilgisi boş olamaz." });
 
             try
             {
                 var bookCopy = await _bookService.AddBookCopyAsync(dto);
+                _logger.LogInformation("Kitap kopyası eklendi. ID: {CopyId}", bookCopy.Id);
                 return Ok(bookCopy);
             }
             catch (KeyNotFoundException ex)
             {
+                _logger.LogWarning("Kitap kopyası ekleme hatası (Bulunamadı): {Message}", ex.Message);
                 return NotFound(new { Success = false, Message = ex.Message });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Kitap kopyası ekleme sırasında sunucu hatası.");
                 return StatusCode(500, new
                 {
                     Success = false,
@@ -290,6 +340,8 @@ namespace LibrarySystem.API.Controllers
         [Route("update-book-copy/{id}")]
         public async Task<IActionResult> UpdateBookCopy(int id, [FromBody] UpdateBookCopyDto dto)
         {
+            _logger.LogInformation("Kitap kopyası güncelleme isteği. CopyId: {CopyId}", id);
+
             if (id <= 0)
                 return BadRequest(new { Success = false, Message = "Geçersiz kitap kopyası ID'si." });
 
@@ -299,18 +351,22 @@ namespace LibrarySystem.API.Controllers
             try
             {
                 var updatedCopy = await _bookService.UpdateBookCopyAsync(id, dto);
+                _logger.LogInformation("Kitap kopyası güncellendi. CopyId: {CopyId}", id);
                 return Ok(updatedCopy);
             }
             catch (ArgumentException ex)
             {
+                _logger.LogWarning("Kopya güncelleme hatası (Argüman): {Message}", ex.Message);
                 return BadRequest(new { Success = false, Message = ex.Message });
             }
             catch (KeyNotFoundException ex)
             {
+                _logger.LogWarning("Kopya güncelleme hatası (Bulunamadı): ID {CopyId}", id);
                 return NotFound(new { Success = false, Message = ex.Message });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Kitap kopyası güncelleme sırasında sunucu hatası. ID: {CopyId}", id);
                 return StatusCode(500, new
                 {
                     Success = false,
@@ -325,6 +381,8 @@ namespace LibrarySystem.API.Controllers
         [Route("delete-book-copy/{id}")]
         public async Task<IActionResult> DeleteBookCopy(int id)
         {
+            _logger.LogInformation("Kitap kopyası silme isteği. CopyId: {CopyId}", id);
+
             if (id <= 0)
                 return BadRequest(new { Success = false, Message = "Geçersiz kitap kopyası ID'si." });
 
@@ -333,20 +391,24 @@ namespace LibrarySystem.API.Controllers
                 var result = await _bookService.DeleteBookCopyAsync(id);
                 if (result)
                 {
+                    _logger.LogInformation("Kitap kopyası silindi. CopyId: {CopyId}", id);
                     return Ok(new
                     {
                         Success = true,
                         Message = "Kitap kopyası başarıyla silindi."
                     });
                 }
+                _logger.LogWarning("Kitap kopyası silinemedi (Bulunamadı veya başarısız). ID: {CopyId}", id);
                 return NotFound(new { Success = false, Message = "Kitap kopyası bulunamadı." });
             }
             catch (KeyNotFoundException ex)
             {
+                _logger.LogWarning("Kitap kopyası silme hatası (Bulunamadı): {Message}", ex.Message);
                 return NotFound(new { Success = false, Message = ex.Message });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Kitap kopyası silme sırasında sunucu hatası. ID: {CopyId}", id);
                 return StatusCode(500, new
                 {
                     Success = false,
@@ -356,5 +418,4 @@ namespace LibrarySystem.API.Controllers
             }
         }
     }
-
 }

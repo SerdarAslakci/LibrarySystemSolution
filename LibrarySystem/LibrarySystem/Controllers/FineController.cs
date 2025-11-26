@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace LibrarySystem.API.Controllers
 {
@@ -10,16 +11,20 @@ namespace LibrarySystem.API.Controllers
     public class FineController : ControllerBase
     {
         private readonly IFineService _fineService;
+        private readonly ILogger<FineController> _logger;
 
-        public FineController(IFineService fineService)
+        public FineController(IFineService fineService, ILogger<FineController> logger)
         {
             _fineService = fineService;
+            _logger = logger;
         }
 
         [Authorize(Roles = "Admin")]
         [HttpGet("by-email")]
         public async Task<IActionResult> GetUserFinesByEmail([FromQuery] string email)
         {
+            _logger.LogInformation("Admin tarafından kullanıcı cezaları sorgulanıyor. Email: {Email}", email);
+
             try
             {
                 var fines = await _fineService.GetUserFinesByEmailAsync(email);
@@ -27,6 +32,7 @@ namespace LibrarySystem.API.Controllers
             }
             catch (KeyNotFoundException ex)
             {
+                _logger.LogWarning("Ceza sorgulama başarısız: Kullanıcı bulunamadı. Email: {Email}", email);
                 return NotFound(new { message = ex.Message });
             }
         }
@@ -35,13 +41,19 @@ namespace LibrarySystem.API.Controllers
         [HttpPost("pay/{fineId}")]
         public async Task<IActionResult> PayFine(int fineId)
         {
+            _logger.LogInformation("Ceza ödeme işlemi başlatıldı. FineId: {FineId}", fineId);
+
             try
             {
                 var fine = await _fineService.PayFineAsync(fineId);
+
+                _logger.LogInformation("Ceza ödeme işlemi başarılı. FineId: {FineId}", fineId);
+
                 return Ok(fine);
             }
             catch (KeyNotFoundException ex)
             {
+                _logger.LogWarning("Ceza ödeme başarısız: Ceza bulunamadı. FineId: {FineId}", fineId);
                 return NotFound(new { message = ex.Message });
             }
         }

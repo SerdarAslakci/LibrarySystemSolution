@@ -5,6 +5,7 @@ using LibrarySystem.Models.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System.Security.Claims;
 
 namespace LibrarySystem.API.Controllers
@@ -14,10 +15,12 @@ namespace LibrarySystem.API.Controllers
     public class LoanController : ControllerBase
     {
         private readonly ILoanService _loanService;
+        private readonly ILogger<LoanController> _logger;
 
-        public LoanController(ILoanService loanService)
+        public LoanController(ILoanService loanService, ILogger<LoanController> logger)
         {
             _loanService = loanService;
+            _logger = logger;
         }
 
         [Authorize]
@@ -28,21 +31,23 @@ namespace LibrarySystem.API.Controllers
 
             if (string.IsNullOrEmpty(userId))
             {
+                _logger.LogWarning("Kullanıcı geçmiş ödünçleri sorgusu: Kimlik doğrulama başarısız (Claim eksik).");
                 return Unauthorized("Kullanıcı kimliği doğrulanamadı.");
             }
 
             try
             {
                 var loans = await _loanService.GetAllLoansByUserAsync(userId);
-
                 return Ok(loans);
             }
             catch (ArgumentException ex)
             {
+                _logger.LogWarning("Kullanıcı ödünçleri sorgusu hatası (Argüman): {Message}", ex.Message);
                 return BadRequest(new { message = ex.Message });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                _logger.LogError(ex, "Kullanıcı ödünçleri alınırken sunucu hatası. UserID: {UserId}", userId);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Ödünç kayıtları alınırken beklenmedik bir hata oluştu.");
             }
         }
@@ -53,7 +58,10 @@ namespace LibrarySystem.API.Controllers
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogWarning("Ödünç alma uygunluk kontrolü: Kullanıcı bulunamadı.");
                 return Unauthorized("Kullanıcı bilgisi bulunamadı.");
+            }
 
             try
             {
@@ -62,6 +70,7 @@ namespace LibrarySystem.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Uygunluk kontrolü sırasında sunucu hatası. UserID: {UserId}", userId);
                 return StatusCode(500, new { message = ex.Message });
             }
         }
@@ -71,23 +80,36 @@ namespace LibrarySystem.API.Controllers
         public async Task<ActionResult<Loan>> CreateLoan([FromBody] CreateLoanDto dto)
         {
             if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Yeni ödünç isteği validasyon hatası.");
                 return BadRequest(ModelState);
+            }
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogWarning("Yeni ödünç isteği: Kullanıcı bulunamadı.");
                 return Unauthorized("Kullanıcı bilgisi bulunamadı.");
+            }
+
+            _logger.LogInformation("Yeni ödünç alma isteği. UserID: {UserId}, Barkod: {Barcode}, Süre: {Days} gün", userId, dto.Barcode, dto.LoanDays);
 
             try
             {
                 var loan = await _loanService.CreateLoanAsync(userId, dto);
+
+                _logger.LogInformation("Ödünç kaydı oluşturuldu. LoanID: {LoanId}", loan.LoanId);
+
                 return CreatedAtAction(nameof(GetLoanById), new { id = loan.LoanId }, loan);
             }
             catch (InvalidOperationException ex)
             {
+                _logger.LogWarning("Ödünç alma başarısız (İş Kuralı): {Message}", ex.Message);
                 return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Ödünç alma işlemi sırasında sunucu hatası.");
                 return StatusCode(500, new { message = ex.Message });
             }
         }
@@ -103,12 +125,16 @@ namespace LibrarySystem.API.Controllers
             {
                 var loan = await _loanService.GetLoanByIdAsync(id);
                 if (loan == null)
+                {
+                    _logger.LogWarning("Ödünç detayı sorgulama: Loan ID {LoanId} bulunamadı.", id);
                     return NotFound($"Loan ID {id} bulunamadı.");
+                }
 
                 return Ok(loan);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Ödünç detayı getirilirken hata oluştu. ID: {LoanId}", id);
                 return StatusCode(500, new { message = ex.Message });
             }
         }
@@ -117,26 +143,32 @@ namespace LibrarySystem.API.Controllers
         [HttpPut("update-loan")]
         public async Task<ActionResult<Loan>> UpdateLoan([FromBody] UpdateLoanDto dto)
         {
+            _logger.LogInformation("Ödünç güncelleme/uzatma isteği. LoanID: {LoanId}, Yeni Tarih: {NewDate}", dto?.LoanId, dto?.NewExpectedReturnDate);
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             try
             {
-
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
                 if (string.IsNullOrEmpty(userId))
                     return Unauthorized("Kullanıcı bilgisi bulunamadı.");
 
                 var updatedLoan = await _loanService.UpdateLoanAsync(dto);
+
+                _logger.LogInformation("Ödünç süresi güncellendi. LoanID: {LoanId}", dto.LoanId);
+
                 return Ok(updatedLoan);
             }
             catch (KeyNotFoundException ex)
             {
+                _logger.LogWarning("Ödünç güncelleme hatası (Bulunamadı): {Message}", ex.Message);
                 return NotFound(new { message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
+                _logger.LogWarning("Ödünç güncelleme hatası (Geçersiz İşlem): {Message}", ex.Message);
                 return BadRequest(new { message = ex.Message });
             }
             catch (ArgumentNullException ex)
@@ -145,6 +177,7 @@ namespace LibrarySystem.API.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Ödünç güncelleme sırasında sunucu hatası.");
                 return StatusCode(500, new { message = ex.Message });
             }
         }
@@ -160,26 +193,33 @@ namespace LibrarySystem.API.Controllers
             if (string.IsNullOrEmpty(returnBookDto.Barcode))
                 return BadRequest("Barkod numarası gereklidir.");
 
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("Kullanıcı bilgisi bulunamadı.");
+
+            _logger.LogInformation("Kitap iade isteği alındı. UserID: {UserId}, Barkod: {Barcode}", userId, returnBookDto.Barcode);
+
             try
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                if (string.IsNullOrEmpty(userId))
-                    return Unauthorized("Kullanıcı bilgisi bulunamadı.");
-
                 var loanSummaryDto = await _loanService.ReturnBookAsync(returnBookDto.Barcode);
+
+                _logger.LogInformation("Kitap başarıyla iade edildi. LoanID: {LoanId}, Gecikme Cezası: {Penalty}", loanSummaryDto.LoanId, loanSummaryDto.ReturnStatus);
 
                 return Ok(loanSummaryDto);
             }
             catch (KeyNotFoundException ex)
             {
+                _logger.LogWarning("İade hatası (Bulunamadı): {Message}", ex.Message);
                 return NotFound(new { message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
+                _logger.LogWarning("İade hatası (Geçersiz İşlem): {Message}", ex.Message);
                 return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "İade işlemi sırasında sunucu hatası. Barkod: {Barcode}", returnBookDto.Barcode);
                 return StatusCode(500, new { message = "İade işlemi sırasında beklenmeyen bir hata oluştu.", details = ex.Message });
             }
 

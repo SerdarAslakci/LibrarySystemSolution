@@ -2,19 +2,23 @@
 using LibrarySystem.API.ServiceInterfaces;
 using LibrarySystem.Models.Models;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 
 namespace LibrarySystem.API.Services
 {
     public class AuthService : IAuthService
     {
         private readonly ITokenService _tokenService;
-        private readonly UserManager<AppUser> _userManager; 
-        private readonly SignInManager<AppUser> _signInManager; 
-        public AuthService(ITokenService tokenService, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager)
+        private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signInManager;
+        private readonly ILogger<AuthService> _logger;
+
+        public AuthService(ITokenService tokenService, UserManager<AppUser> userManager, SignInManager<AppUser> signInManager, ILogger<AuthService> logger)
         {
             _tokenService = tokenService;
             _userManager = userManager;
             _signInManager = signInManager;
+            _logger = logger;
         }
 
         public static string NormalizeUserName(string firstName, string lastName)
@@ -35,15 +39,23 @@ namespace LibrarySystem.API.Services
 
         public async Task<AuthResult> LoginAsync(LoginDto loginDto)
         {
+            _logger.LogInformation("Kullanıcı giriş denemesi: {Email}", loginDto.Email);
+
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
 
             if (user == null)
+            {
+                _logger.LogWarning("Başarısız giriş denemesi: E-posta bulunamadı. ({Email})", loginDto.Email);
                 throw new ArgumentException("E-posta adresi veya parola hatalı. Lütfen bilgilerinizi kontrol edin.");
+            }
 
             var checkPassword = await _signInManager.CheckPasswordSignInAsync(user, loginDto.Password, false);
 
             if (!checkPassword.Succeeded)
+            {
+                _logger.LogWarning("Başarısız giriş denemesi: Yanlış parola. Kullanıcı: {Email}", loginDto.Email);
                 throw new ArgumentException("E-posta adresi veya parola hatalı. Lütfen bilgilerinizi kontrol edin.");
+            }
 
             var refreshToken = await _tokenService.CreateRefreshTokenAsync();
 
@@ -53,6 +65,8 @@ namespace LibrarySystem.API.Services
             await _userManager.UpdateAsync(user);
 
             var token = await _tokenService.CreateTokenAsync(user);
+
+            _logger.LogInformation("Kullanıcı başarıyla giriş yaptı: {UserName} ({Email})", user.UserName, user.Email);
 
             return new AuthResult
             {
@@ -69,11 +83,13 @@ namespace LibrarySystem.API.Services
 
             if (user == null)
             {
+                _logger.LogWarning("Token yenileme başarısız: Geçersiz RefreshToken kullanıldı.");
                 throw new ArgumentException("Geçersiz token isteği.");
             }
 
             if (user.RefreshTokenExpiry <= DateTime.UtcNow)
             {
+                _logger.LogWarning("Token yenileme başarısız: RefreshToken süresi dolmuş. Kullanıcı: {UserName}", user.UserName);
                 throw new ArgumentException("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
             }
 
@@ -83,6 +99,8 @@ namespace LibrarySystem.API.Services
             user.RefreshToken = newRefreshToken;
 
             await _userManager.UpdateAsync(user);
+
+            _logger.LogInformation("Token başarıyla yenilendi. Kullanıcı: {UserName}", user.UserName);
 
             return new AuthResult
             {
@@ -95,6 +113,8 @@ namespace LibrarySystem.API.Services
 
         public async Task<AuthResult> RegisterAsync(RegisterDto registerDto)
         {
+            _logger.LogInformation("Yeni kullanıcı kayıt isteği: {Email}", registerDto.Email);
+
             var user = new AppUser
             {
                 UserName = NormalizeUserName(registerDto.FirstName, registerDto.LastName),
@@ -109,6 +129,9 @@ namespace LibrarySystem.API.Services
             if (!createResult.Succeeded)
             {
                 var errors = createResult.Errors.Select(e => e.Description).ToList();
+                string errorString = string.Join("; ", errors);
+
+                _logger.LogWarning("Kullanıcı oluşturma başarısız ({Email}). Hatalar: {Errors}", registerDto.Email, errorString);
 
                 var userFriendlyMessage = "Kayıt işlemi başarısız.";
 
@@ -118,15 +141,19 @@ namespace LibrarySystem.API.Services
                 }
 
                 throw new InvalidOperationException(
-                    userFriendlyMessage + " Detaylar: " + string.Join("; ", errors)
+                    userFriendlyMessage + " Detaylar: " + errorString
                 );
             }
 
             var roleResult = await _userManager.AddToRoleAsync(user, "User");
-            if(!roleResult.Succeeded)
+            if (!roleResult.Succeeded)
             {
                 var errors = roleResult.Errors.Select(e => e.Description).ToList();
-                throw new InvalidOperationException("Kullanıcı rolü atama işlemi başarısız. Detaylar: " + string.Join("; ", errors));
+                string errorString = string.Join("; ", errors);
+
+                _logger.LogError("Kullanıcı oluşturuldu ancak ROL atanamadı! Kullanıcı: {UserName}, Hatalar: {Errors}", user.UserName, errorString);
+
+                throw new InvalidOperationException("Kullanıcı rolü atama işlemi başarısız. Detaylar: " + errorString);
             }
 
             var token = await _tokenService.CreateTokenAsync(user);
@@ -136,6 +163,8 @@ namespace LibrarySystem.API.Services
             user.RefreshTokenExpiry = DateTime.UtcNow.AddDays(7);
 
             await _userManager.UpdateAsync(user);
+
+            _logger.LogInformation("Yeni kullanıcı başarıyla kaydedildi: {UserName} ({Email})", user.UserName, user.Email);
 
             return new AuthResult
             {

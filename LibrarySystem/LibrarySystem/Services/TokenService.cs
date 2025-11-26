@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using Microsoft.Extensions.Logging;
 
 namespace LibrarySystem.API.Services
 {
@@ -13,13 +14,15 @@ namespace LibrarySystem.API.Services
         private readonly IConfiguration _configuration;
         private readonly SymmetricSecurityKey _key;
         private readonly UserManager<AppUser> _userManager;
+        private readonly ILogger<TokenService> _logger;
 
 
-        public TokenService(IConfiguration configuration, UserManager<AppUser> userManager)
+        public TokenService(IConfiguration configuration, UserManager<AppUser> userManager, ILogger<TokenService> logger)
         {
             _configuration = configuration;
             _userManager = userManager;
             _key = new SymmetricSecurityKey(System.Text.Encoding.UTF8.GetBytes(_configuration["JWT:SigningKey"]));
+            _logger = logger;
         }
 
 
@@ -36,6 +39,8 @@ namespace LibrarySystem.API.Services
 
         public async Task<string> CreateTokenAsync(AppUser user)
         {
+            _logger.LogInformation("JWT Token üretimi başladı. Kullanıcı: {UserName}", user.UserName);
+
             var claims = new List<Claim>()
             {
                 new Claim(JwtRegisteredClaimNames.Name,user.UserName),
@@ -46,9 +51,14 @@ namespace LibrarySystem.API.Services
 
             var roles = await _userManager.GetRolesAsync(user);
 
-            foreach(var role in roles)
+            foreach (var role in roles)
             {
                 claims.Add(new Claim(ClaimTypes.Role, role));
+            }
+
+            if (roles.Count > 0)
+            {
+                _logger.LogInformation("Token'a roller eklendi: {Roles}", string.Join(", ", roles));
             }
 
             var signingCredentials = new SigningCredentials(_key, SecurityAlgorithms.HmacSha512Signature);
@@ -65,6 +75,8 @@ namespace LibrarySystem.API.Services
             var tokenHandler = new JwtSecurityTokenHandler();
 
             var token = tokenHandler.CreateJwtSecurityToken(tokenDescriptor);
+
+            _logger.LogInformation("JWT Token başarıyla imzalandı ve oluşturuldu. UserID: {UserId}", user.Id);
 
             return tokenHandler.WriteToken(token);
         }

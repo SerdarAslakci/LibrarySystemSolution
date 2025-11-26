@@ -3,6 +3,7 @@ using LibrarySystem.API.Dtos.BookDtos;
 using LibrarySystem.API.RepositoryInterfaces;
 using LibrarySystem.Models.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace LibrarySystem.API.Repositories
 {
@@ -131,15 +132,18 @@ namespace LibrarySystem.API.Repositories
                     bc.Shelf.Room.RoomCode.ToLower() == lowerRoomCode));
             }
 
+            var page = filterDto.Page.GetValueOrDefault(1);
+            var size = filterDto.Size.GetValueOrDefault(12);
+
             var totalCount = await query.CountAsync();
 
             var items = await query
                 .OrderBy(b => b.Id)
-                .Skip(filterDto.Page * filterDto.Size)
-                .Take(filterDto.Size)
+                .Skip((page - 1) * size)
+                .Take(size)
                 .ToListAsync();
 
-            return new PaginatedResult<Book>(items, totalCount, filterDto.Page, filterDto.Size);
+            return new PaginatedResult<Book>(items, totalCount, page, size);
         }
         public async Task<Book?> GetBookByIdAsync(int id)
         {

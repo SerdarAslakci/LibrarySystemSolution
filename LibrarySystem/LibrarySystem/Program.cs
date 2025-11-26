@@ -24,6 +24,17 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowNextJs",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:3001", "http://localhost:3000")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
+
 
 builder.Services.AddSwaggerGen(option =>
 {
@@ -159,8 +170,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
+app.UseCors("AllowNextJs");
 app.UseAuthentication();
 app.UseAuthorization();
 

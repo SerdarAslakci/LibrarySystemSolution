@@ -14,6 +14,7 @@ namespace LibrarySystem.API.Repositories
             _context = context;
         }
 
+        
         public async Task<Category> AddCategoryAsync(Category category)
         {
             var addedCategory = await _context.Categories.AddAsync(category);
@@ -39,6 +40,11 @@ namespace LibrarySystem.API.Repositories
                 .FirstOrDefaultAsync(c =>
                     c.Name != null &&
                     c.Name.ToLower() == name.ToLower());
+        }
+
+        public async Task<IEnumerable<Category>> GetAllCategoriesAsync()
+        {
+            return await _context.Categories.ToListAsync();
         }
     }
 }

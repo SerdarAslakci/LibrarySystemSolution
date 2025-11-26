@@ -265,7 +265,7 @@ namespace LibrarySystem.API.Services
             return book;
         }
 
-        public async Task<IEnumerable<Book>> GetAllBooksAsync(BookFilterDto filterDto)
+        public async Task<PaginatedResult<Book>> GetAllBooksAsync(BookFilterDto filterDto)
         {
             return await _bookRepository.GetAllBooksAsync(filterDto);
         }

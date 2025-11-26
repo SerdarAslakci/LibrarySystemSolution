@@ -6,7 +6,7 @@ namespace LibrarySystem.API.RepositoryInterfaces
 {
     public interface IBookRepository
     {
-        Task<IEnumerable<Book>> GetAllBooksAsync(BookFilterDto filterDto);
+        Task<PaginatedResult<Book>> GetAllBooksAsync(BookFilterDto filterDto);
         Task<Book?> GetBookByIdAsync(int id);
         Task<Book?> GetBookWithDetailsAsync(int id);
         Task<BookCopy?> GetBookCopyByIdAsync(int id);

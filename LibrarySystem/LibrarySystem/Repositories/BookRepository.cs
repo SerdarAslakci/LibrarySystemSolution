@@ -69,7 +69,7 @@ namespace LibrarySystem.API.Repositories
 
             return affectedRows > 0;
         } 
-        public async Task<IEnumerable<Book>> GetAllBooksAsync(BookFilterDto filterDto)
+        public async Task<PaginatedResult<Book>> GetAllBooksAsync(BookFilterDto filterDto)
         {
 
             IQueryable<Book> query = _context.Books
@@ -131,7 +131,15 @@ namespace LibrarySystem.API.Repositories
                     bc.Shelf.Room.RoomCode.ToLower() == lowerRoomCode));
             }
 
-            return await query.ToListAsync();
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .OrderBy(b => b.Id)
+                .Skip(filterDto.Page * filterDto.Size)
+                .Take(filterDto.Size)
+                .ToListAsync();
+
+            return new PaginatedResult<Book>(items, totalCount, filterDto.Page, filterDto.Size);
         }
         public async Task<Book?> GetBookByIdAsync(int id)
         {

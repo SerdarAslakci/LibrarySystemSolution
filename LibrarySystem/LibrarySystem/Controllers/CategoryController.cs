@@ -58,6 +58,7 @@ namespace LibrarySystem.API.Controllers
         }
 
         [HttpGet]
+        [Route("list")]
         public async Task<IActionResult> GetAllCategories()
         {
             _logger.LogInformation("GET /api/category isteği alındı. Tüm kategoriler isteniyor.");

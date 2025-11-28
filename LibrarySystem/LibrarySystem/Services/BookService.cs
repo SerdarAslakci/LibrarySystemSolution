@@ -1,4 +1,5 @@
-﻿using LibrarySystem.API.DataContext;
+﻿using Azure.Core;
+using LibrarySystem.API.DataContext;
 using LibrarySystem.API.Dtos.BookCopyDtos;
 using LibrarySystem.API.Dtos.BookDtos;
 using LibrarySystem.API.Dtos.ShelfDtos;
@@ -372,6 +373,27 @@ namespace LibrarySystem.API.Services
                 _logger.LogWarning("Kitap kopyası durumu değiştirilemedi. ID: {CopyId}", bookCopyId);
             }
             return result;
+        }
+
+        public async Task<IEnumerable<Book>> GetOtherBooksByAuthorAsync(int authorId, int? size, int? categoryId = null)
+        {
+            if (size <= 0)
+            {
+                _logger.LogWarning("Geçersiz size değeri: {Size}", size);
+                throw new ArgumentException("Size 0'dan büyük olmalıdır.", nameof(size));
+            }
+
+            var authorExists = await _authorService.GetByIdAsync(authorId);
+
+            if (authorExists == null)
+            {
+                _logger.LogWarning("Yazar bulunamadı. AuthorId: {AuthorId}", authorId);
+                throw new KeyNotFoundException($"ID {authorId} ile kayıtlı yazar bulunamadı.");
+            }
+
+            var books = await _bookRepository.GetOtherBooksByAuthorAsync(authorId, size ?? 5,categoryId);
+
+            return books;
         }
     }
 }

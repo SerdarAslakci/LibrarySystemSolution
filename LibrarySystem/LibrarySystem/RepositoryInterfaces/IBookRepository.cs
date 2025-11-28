@@ -11,6 +11,8 @@ namespace LibrarySystem.API.RepositoryInterfaces
         Task<Book?> GetBookWithDetailsAsync(int id);
         Task<BookCopy?> GetBookCopyByIdAsync(int id);
         Task<BookCopy?> GetBookCopyByBarcodeAsync(string barcode);
+        Task<IEnumerable<Book>> GetOtherBooksByAuthorAsync(int authorId, int size, int? categoryId = null);
+
 
         Task<Book> AddBookAsync(Book book);
         Task<BookCopy> AddBookCopyAsync(BookCopy copy);

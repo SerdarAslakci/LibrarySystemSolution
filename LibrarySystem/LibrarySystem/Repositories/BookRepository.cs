@@ -172,6 +172,30 @@ namespace LibrarySystem.API.Repositories
                         .ThenInclude(s => s.Room)
                 .FirstOrDefaultAsync(b => b.Id == id);
         }
+
+        public async Task<IEnumerable<Book>> GetOtherBooksByAuthorAsync(int authorId, int size, int? categoryId = null)
+        {
+            var query = _context.Books
+                .Include(b => b.Category)
+                .Include(b => b.Publisher)
+                .Include(b => b.BookAuthors)
+                    .ThenInclude(ba => ba.Author)
+                .Include(b => b.BookCopies)
+                    .ThenInclude(bc => bc.Shelf)
+                        .ThenInclude(s => s.Room)
+                .Where(b => b.BookAuthors.Any(ba => ba.AuthorId == authorId));
+
+            if (categoryId.HasValue)
+            {
+                query = query.OrderByDescending(b => b.CategoryId == categoryId.Value);
+            }
+
+            return await query
+                .Take(size)
+                .ToListAsync();
+        }
+
+
         public async Task<bool> IsBookAuthorExistsAsync(int bookId, int authorId)
         {
             return await _context.BookAuthors

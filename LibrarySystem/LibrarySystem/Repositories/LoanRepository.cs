@@ -105,5 +105,16 @@ namespace LibrarySystem.API.Repositories
 
             return loans;
         }
+
+        public async Task<int> GetLoanedBookCountAsync()
+        {
+            return await _context.Loans.CountAsync(l => l.ActualReturnDate == null);
+        }
+
+        public Task<int> GetOverdueLoanCountAsync()
+        {
+            return _context.Loans
+                .CountAsync(l => l.ExpectedReturnDate < DateTime.Now && l.ActualReturnDate == null);
+        }
     }
 }

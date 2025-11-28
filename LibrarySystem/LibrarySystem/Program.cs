@@ -138,6 +138,7 @@ builder.Services.AddScoped<IFineRepository, FineRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 
+
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAuthorService, AuthorService>();
@@ -151,6 +152,7 @@ builder.Services.AddScoped<IFineTypeService, FineTypeService>();
 builder.Services.AddScoped<ILoanService, LoanService>();
 builder.Services.AddScoped<IFineService, FineService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 
 var app = builder.Build();

@@ -11,5 +11,7 @@ namespace LibrarySystem.API.RepositoryInterfaces
         Task<bool> IsBookCopyOnLoanAsync(int bookCopyId);
         Task<bool> CanUserBarrowAsync(string userId);
         Task<Loan?> MarkAsReturnedByBarcodeAsync(string barcode);
+        Task<int> GetLoanedBookCountAsync();
+        Task<int> GetOverdueLoanCountAsync();
     }
 }

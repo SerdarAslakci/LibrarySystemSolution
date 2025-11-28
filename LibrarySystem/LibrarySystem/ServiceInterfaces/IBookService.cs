@@ -13,6 +13,7 @@ namespace LibrarySystem.API.ServiceInterfaces
         Task<Book?> GetBookByIdAsync(int id);
         Task<Book?> GetBookWithDetailsAsync(int id);
         Task<PaginatedResult<Book>> GetAllBooksAsync(BookFilterDto filterDto);
+        Task<IEnumerable<Book>> GetOtherBooksByAuthorAsync(int authorId, int? size, int? categoryId = null);
 
         // BookAuthor Operations
         Task<BookAuthor> AddBookAuthorAsync(BookAuthor bookAuthor);
@@ -20,6 +21,8 @@ namespace LibrarySystem.API.ServiceInterfaces
 
         // BookCopy Operations
         Task<BookCopy?> GetBookCopyByBarcodeAsync(string barcode);
+
+       
         Task<BookCopy> AddBookCopyAsync(CreateBookCopyDto createBookCopyDto);
         Task<BookCopy> UpdateBookCopyAsync(int id, UpdateBookCopyDto updateBookCopyDto);
         Task<bool> SetBookCopyUnAvailableAsync(int bookCopyId);

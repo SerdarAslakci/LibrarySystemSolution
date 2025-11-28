@@ -63,6 +63,33 @@ namespace LibrarySystem.API.Controllers
             }
         }
 
+        [HttpGet("other-by-author")]
+        public async Task<IActionResult> GetOtherBooksByAuthor([FromQuery] AuthorBooksRequestDto request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var books = await _bookService.GetOtherBooksByAuthorAsync(request.AuthorId, request.Size, request.CategoryId);
+                return Ok(books);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Beklenmeyen bir hata oluştu.", detail = ex.Message });
+            }
+        }
+
         [Authorize]
         [HttpPut]
         [Route("update-book/{id}")]

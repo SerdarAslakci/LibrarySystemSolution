@@ -1,4 +1,5 @@
 ﻿using LibrarySystem.API.DataContext;
+using LibrarySystem.API.Dtos.CategoryDtos;
 using LibrarySystem.API.RepositoryInterfaces;
 using LibrarySystem.Models.Models;
 using Microsoft.EntityFrameworkCore;
@@ -42,9 +43,16 @@ namespace LibrarySystem.API.Repositories
                     c.Name.ToLower() == name.ToLower());
         }
 
-        public async Task<IEnumerable<Category>> GetAllCategoriesAsync()
+        public async Task<IEnumerable<CategoryResultDto>> GetAllCategoriesAsync()
         {
-            return await _context.Categories.ToListAsync();
+            return await _context.Categories
+                .Select(c => new CategoryResultDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    BookCount = _context.Books.Count(b => b.CategoryId == c.Id)
+                })
+                .ToListAsync();
         }
     }
 }

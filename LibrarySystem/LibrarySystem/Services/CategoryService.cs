@@ -114,11 +114,7 @@ namespace LibrarySystem.API.Services
                     _logger.LogInformation("{Count} kategori başarıyla getirildi.", categories.Count());
                 }
 
-                return categories.Select(c => new CategoryResultDto
-                {
-                    Id = c.Id,
-                    Name = c.Name
-                });
+                return categories;
             }
             catch (Exception ex)
             {

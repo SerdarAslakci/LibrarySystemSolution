@@ -8,5 +8,6 @@ namespace LibrarySystem.API.RepositoryInterfaces
         Task<IEnumerable<AppUser>> GetUsersInRoleAsync(string roleName);
         Task<AppUser?> GetUserByIdAsync(string userId);
         Task<AppUser?> GetUserByEmailAsync(string email);
+        Task<int> GetUserCountAsync();
     }
 }

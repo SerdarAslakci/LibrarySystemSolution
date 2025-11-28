@@ -160,6 +160,12 @@ namespace LibrarySystem.API.Repositories
         {
             return await _context.BookCopies.FindAsync(id);
         }
+
+        public async Task<int> GetBookCountAsync()
+        {
+            return await _context.Books.CountAsync();
+        }
+
         public async Task<Book?> GetBookWithDetailsAsync(int id)
         {
             return await _context.Books

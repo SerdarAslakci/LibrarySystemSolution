@@ -32,5 +32,11 @@ namespace LibrarySystem.API.Repositories
         {
             return await _userManager.FindByIdAsync(userId);
         }
+
+        public async Task<int> GetUserCountAsync()
+        {
+            var users = await _userManager.GetUsersInRoleAsync("User");
+            return users.Count;
+        }
     }
 }

@@ -10,13 +10,11 @@ namespace LibrarySystem.API.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
-        private readonly IMapper _mapper;
         private readonly ILogger<UserService> _logger;
 
-        public UserService(IUserRepository userRepository, IMapper mapper, ILogger<UserService> logger)
+        public UserService(IUserRepository userRepository, ILogger<UserService> logger)
         {
             _userRepository = userRepository;
-            _mapper = mapper;
             _logger = logger;
         }
 
@@ -52,7 +50,7 @@ namespace LibrarySystem.API.Services
                 throw new KeyNotFoundException($"ID değeri '{userId}' olan kullanıcı bulunamadı.");
             }
 
-            return _mapper.Map<UserViewDto>(user);
+            return user;
         }
 
         public async Task<UserViewDto?> GetUserDetailByEmailAsync(string email)
@@ -65,7 +63,7 @@ namespace LibrarySystem.API.Services
                 throw new KeyNotFoundException($"'{email}' email adresine sahip kullanıcı bulunamadı.");
             }
 
-            return _mapper.Map<UserViewDto>(user);
+            return user;
         }
     }
 }

@@ -7,8 +7,8 @@ namespace LibrarySystem.API.RepositoryInterfaces
     {
         Task<IEnumerable<UserViewDto>> GetAllUsersAsync();
         Task<IEnumerable<UserViewDto>> GetUsersInRoleAsync(string roleName);
-        Task<AppUser?> GetUserByIdAsync(string userId);
-        Task<AppUser?> GetUserByEmailAsync(string email);
+        Task<UserViewDto?> GetUserByIdAsync(string userId);
+        Task<UserViewDto?> GetUserByEmailAsync(string email);
         Task<int> GetUserCountAsync();
     }
 }

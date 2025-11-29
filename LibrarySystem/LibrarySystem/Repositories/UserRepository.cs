@@ -60,14 +60,46 @@ namespace LibrarySystem.API.Repositories
             return await query.ToListAsync();
         }
 
-        public async Task<AppUser?> GetUserByEmailAsync(string email)
+        public async Task<UserViewDto?> GetUserByEmailAsync(string email)
         {
-            return await _userManager.FindByEmailAsync(email);
+            var query = _context.Users
+                .Where(user => user.Email == email)
+                .Select(user => new UserViewDto
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    Roles = (from ur in _context.UserRoles
+                             join r in _context.Roles on ur.RoleId equals r.Id
+                             where ur.UserId == user.Id
+                             select r.Name).ToList(),
+                    loanBookCount = _context.Loans.Count(loan => loan.UserId == user.Id),
+                    HasFine = _context.Fines.Any(fine => fine.UserId == user.Id && fine.IsActive)
+                });
+
+            return await query.FirstOrDefaultAsync();
         }
 
-        public async Task<AppUser?> GetUserByIdAsync(string userId)
+        public async Task<UserViewDto?> GetUserByIdAsync(string userId)
         {
-            return await _userManager.FindByIdAsync(userId);
+            var query = _context.Users
+                .Where(user => user.Id == userId) 
+                .Select(user => new UserViewDto
+                {
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    Email = user.Email,
+                    Roles = (from ur in _context.UserRoles
+                             join r in _context.Roles on ur.RoleId equals r.Id
+                             where ur.UserId == user.Id
+                             select r.Name).ToList(),
+                    loanBookCount = _context.Loans.Count(loan => loan.UserId == user.Id),
+                    HasFine = _context.Fines.Any(fine => fine.UserId == user.Id && fine.IsActive)
+                });
+
+            return await query.FirstOrDefaultAsync();
         }
 
         public async Task<int> GetUserCountAsync()

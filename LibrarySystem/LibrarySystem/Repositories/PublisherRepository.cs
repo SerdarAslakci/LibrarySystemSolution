@@ -32,7 +32,9 @@ namespace LibrarySystem.API.Repositories
 
         public async Task<IEnumerable<Publisher>> GetAllAsync()
         {
-            return await _context.Publishers.ToListAsync();
+            return await _context.Publishers
+                .OrderBy(p => p.Name)
+                .ToListAsync();
         }
 
         public async Task<Publisher?> GetByIdAsync(int id)

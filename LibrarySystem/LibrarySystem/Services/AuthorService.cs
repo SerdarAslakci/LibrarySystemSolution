@@ -109,5 +109,18 @@ namespace LibrarySystem.API.Services
                 });
             }
         }
+
+        public AuthorService(IAuthorRepository authorRepository, ILogger<AuthorService> logger)
+        {
+            _authorRepository = authorRepository;
+            _logger = logger;
+        }
+
+        public async Task<IEnumerable<Author>> GetAllAuthorsAsync()
+        {
+            _logger.LogInformation("Service: Tüm yazarları getirme işlemi çağrıldı.");
+
+            return await _authorRepository.GetAllAuthorsAsync();
+        }
     }
 }

@@ -95,6 +95,24 @@ namespace LibrarySystem.API.Services
             }
         }
 
+        public async Task<IEnumerable<Publisher>> GetAllAsync()
+        {
+            _logger.LogInformation("Tüm yayınevleri için listeleme isteği alındı.");
+
+            var publishers = await _publisherRepository.GetAllAsync();
+
+            if (publishers == null || !publishers.Any())
+            {
+                _logger.LogWarning("Yayınevi listeleme: Kayıt bulunamadı.");
+            }
+            else
+            {
+                _logger.LogInformation("Toplam {Count} yayınevi listelendi.", publishers.Count());
+            }
+
+            return publishers ?? Enumerable.Empty<Publisher>();
+        }
+
     }
 
 }

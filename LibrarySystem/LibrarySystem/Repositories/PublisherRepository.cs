@@ -30,6 +30,11 @@ namespace LibrarySystem.API.Repositories
             return await _context.Publishers.AnyAsync(p => p.Name.ToLower().Contains(lowerName));
         }
 
+        public async Task<IEnumerable<Publisher>> GetAllAsync()
+        {
+            return await _context.Publishers.ToListAsync();
+        }
+
         public async Task<Publisher?> GetByIdAsync(int id)
         {
             return await _context.Publishers.FindAsync(id);
@@ -37,8 +42,20 @@ namespace LibrarySystem.API.Repositories
 
         public async Task<Publisher?> GetByNameAsync(string name)
         {
-            return await _context.Publishers
-                .FirstOrDefaultAsync(p => p.Name.ToLower() == name.ToLower());
+
+            var searchPattern = $"%{name}%";
+
+            var result = await _context.Publishers
+                 .FromSql($@"
+                    SELECT * FROM Publishers 
+                    WHERE 
+                        DIFFERENCE(Name, {name}) >= 3  -- Yazım hatası olsa bile harf benzerliği yüksek olanları bulur.
+                        OR SOUNDEX(Name) = SOUNDEX({name})  -- Yazılışı farklı ama okunuşu/tınısı aynı olanları eşleştirir.
+                        OR Name LIKE {searchPattern} -- Aranan kelimenin ismin herhangi bir yerinde geçip geçmediğine bakar.
+                ")
+                    .FirstOrDefaultAsync();
+
+            return result;
         }
     }
 }

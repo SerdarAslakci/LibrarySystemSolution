@@ -6,9 +6,9 @@ namespace LibrarySystem.API.ServiceInterfaces
     {
         Task<Publisher> AddPublisherAsync(Publisher publisher);
         Task<bool> IsExistsAsync(string? name);
+        Task<IEnumerable<Publisher>> GetAllAsync();
         Task<Publisher?> GetByIdAsync(int id);
         Task<Publisher?> GetByNameAsync(string name);
-
         Task<Publisher> GetOrCreateAsync(int? id, string? name);
 
     }

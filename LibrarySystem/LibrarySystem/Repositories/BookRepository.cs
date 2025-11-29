@@ -152,22 +152,13 @@ namespace LibrarySystem.API.Repositories
             return book;
         }
 
-        public async Task<Book?> GetBookByNameWithDetailsAsync(string name)
+        public async Task<IEnumerable<Book>?> GetBooksByNameWithDetailsAsync(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return null;
 
-            var query = _context.Books
-                .FromSqlInterpolated($@"
-                    SELECT * FROM Books 
-                    WHERE 
-                    DIFFERENCE(Title, {name}) >= 3 
-                    OR 
-                    SOUNDEX(Title) = SOUNDEX({name}) 
-                    OR 
-                    Title LIKE {'%' + name + '%'}
-                ");
-
-            var bookWithDetails = await query
+            var exactMatch = await _context.Books
+                .Where(b => b.Title.ToLower().Contains(name.ToLower()))
+                .OrderBy(b => b.Title)
                 .Include(b => b.Category)
                 .Include(b => b.Publisher)
                 .Include(b => b.BookAuthors)
@@ -175,9 +166,44 @@ namespace LibrarySystem.API.Repositories
                 .Include(b => b.BookCopies)
                     .ThenInclude(bc => bc.Shelf)
                         .ThenInclude(s => s.Room)
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
-            return bookWithDetails;
+            if (exactMatch != null && exactMatch.Any())
+            {
+                return exactMatch;
+            }
+            var bookIdsQuery = _context.Books
+                .FromSqlInterpolated($@"
+                    SELECT Id FROM Books
+                    WHERE
+                    DIFFERENCE(Title, {name}) >= 3
+                    OR
+                    SOUNDEX(Title) = SOUNDEX({name})
+                    OR
+                    Title LIKE {'%' + name + '%'}
+                ")
+                .Select(b => b.Id);
+
+            var bookIds = await bookIdsQuery.ToListAsync();
+
+            if (bookIds == null || !bookIds.Any())
+            {
+                return Array.Empty<Book>();
+            }
+
+            var similarBooksWithDetails = await _context.Books
+                .Where(b => bookIds.Contains(b.Id))
+                .OrderBy(b => b.Title)
+                .Include(b => b.Category)
+                .Include(b => b.Publisher)
+                .Include(b => b.BookAuthors)
+                    .ThenInclude(ba => ba.Author)
+                .Include(b => b.BookCopies)
+                    .ThenInclude(bc => bc.Shelf)
+                        .ThenInclude(s => s.Room)
+                .ToListAsync();
+
+            return similarBooksWithDetails;
         }
 
         public async Task<BookCopy?> GetBookCopyByBarcodeAsync(string barcode)

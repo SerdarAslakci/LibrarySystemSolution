@@ -71,7 +71,7 @@ namespace LibrarySystem.API.Controllers
 
             try
             {
-                var result = await _bookService.GetBookByNameWithDetailsAsync(name);
+                var result = await _bookService.GetBooksByNameWithDetailsAsync(name);
 
                 if (result == null)
                 {
@@ -79,7 +79,7 @@ namespace LibrarySystem.API.Controllers
                     return NotFound(new { message = $"'{name}' ismine benzer veya eşleşen bir kitap bulunamadı." });
                 }
 
-                _logger.LogInformation("Controller: Kitap başarıyla bulundu ve dönülüyor. Kitap ID: {Id}", result.Id);
+                _logger.LogInformation("Controller: Kitap başarıyla bulundu ve dönülüyor");
                 return Ok(result);
             }
             catch (ArgumentException ex)

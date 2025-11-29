@@ -22,7 +22,7 @@ namespace LibrarySystem.API.Services
 
         public async Task<IEnumerable<UserViewDto>> GetUsersForListingAsync(string? roleFilter = null)
         {
-            IEnumerable<AppUser> users;
+            IEnumerable<UserViewDto> users;
 
             if (!string.IsNullOrWhiteSpace(roleFilter))
             {
@@ -39,7 +39,7 @@ namespace LibrarySystem.API.Services
                 users = await _userRepository.GetAllUsersAsync();
             }
 
-            return _mapper.Map<IEnumerable<UserViewDto>>(users);
+            return users;
         }
 
         public async Task<UserViewDto?> GetUserDetailByIdAsync(string userId)

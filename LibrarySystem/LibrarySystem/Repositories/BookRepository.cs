@@ -151,6 +151,35 @@ namespace LibrarySystem.API.Repositories
 
             return book;
         }
+
+        public async Task<Book?> GetBookByNameWithDetailsAsync(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return null;
+
+            var query = _context.Books
+                .FromSqlInterpolated($@"
+                    SELECT * FROM Books 
+                    WHERE 
+                    DIFFERENCE(Title, {name}) >= 3 
+                    OR 
+                    SOUNDEX(Title) = SOUNDEX({name}) 
+                    OR 
+                    Title LIKE {'%' + name + '%'}
+                ");
+
+            var bookWithDetails = await query
+                .Include(b => b.Category)
+                .Include(b => b.Publisher)
+                .Include(b => b.BookAuthors)
+                    .ThenInclude(ba => ba.Author)
+                .Include(b => b.BookCopies)
+                    .ThenInclude(bc => bc.Shelf)
+                        .ThenInclude(s => s.Room)
+                .FirstOrDefaultAsync();
+
+            return bookWithDetails;
+        }
+
         public async Task<BookCopy?> GetBookCopyByBarcodeAsync(string barcode)
         {
             return await _context.BookCopies

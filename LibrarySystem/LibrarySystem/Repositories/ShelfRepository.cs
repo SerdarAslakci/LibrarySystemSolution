@@ -25,9 +25,33 @@ namespace LibrarySystem.API.Repositories
         public async Task<Shelf?> GetShelfByCodeAndRoomIdAsync(string shelfCode, int roomId)
         {
             var shelf = await _context.Shelves
+                    .Include(s => s.Room)
                     .FirstOrDefaultAsync(s => s.ShelfCode == shelfCode && s.RoomId == roomId);
 
             return shelf;
+        }
+
+        public async Task<Shelf?> GetShelfByIdAsync(int shelfId)
+        {
+            return await _context.Shelves
+                .Include(s => s.Room)
+                .FirstOrDefaultAsync(x => x.Id == shelfId);
+        }
+
+        public async Task<IEnumerable<Shelf>> GetShelvesByRoomIdAsync(int roomId)
+        {
+            return await _context.Shelves
+                    .Include(s => s.Room)
+                    .Where(s => s.RoomId == roomId)
+                    .ToListAsync();
+        }
+
+        public async Task<Shelf> UpdateShelfAsync(Shelf shelf)
+        {
+            var updated =  _context.Shelves.Update(shelf);
+            await _context.SaveChangesAsync();
+
+            return updated.Entity;
         }
     }
 }

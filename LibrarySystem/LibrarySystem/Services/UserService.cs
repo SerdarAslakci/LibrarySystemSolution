@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using LibrarySystem.API.Dtos.BookDtos;
 using LibrarySystem.API.Dtos.UserDtos;
 using LibrarySystem.API.RepositoryInterfaces;
 using LibrarySystem.API.ServiceInterfaces;
@@ -18,26 +19,9 @@ namespace LibrarySystem.API.Services
             _logger = logger;
         }
 
-        public async Task<IEnumerable<UserViewDto>> GetUsersForListingAsync(string? roleFilter = null)
+        public async Task<PaginatedResult<UserViewDto>> GetUsersForListingAsync(UserFilterDto filter)
         {
-            IEnumerable<UserViewDto> users;
-
-            if (!string.IsNullOrWhiteSpace(roleFilter))
-            {
-                users = await _userRepository.GetUsersInRoleAsync(roleFilter);
-
-                if (!users.Any())
-                {
-                    _logger.LogWarning("Kullanıcı listeleme uyarısı: '{Role}' rolüne ait kullanıcı bulunamadı.", roleFilter);
-                    throw new KeyNotFoundException($"'{roleFilter}' rolüne ait kullanıcı bulunamadı.");
-                }
-            }
-            else
-            {
-                users = await _userRepository.GetAllUsersAsync();
-            }
-
-            return users;
+            return await _userRepository.GetUsersWithFilterAsync(filter);
         }
 
         public async Task<UserViewDto?> GetUserDetailByIdAsync(string userId)

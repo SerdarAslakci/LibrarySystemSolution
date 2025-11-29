@@ -1,6 +1,6 @@
-﻿using LibrarySystem.API.ServiceInterfaces;
+﻿using LibrarySystem.API.Dtos.UserDtos;
+using LibrarySystem.API.ServiceInterfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -21,18 +21,19 @@ namespace LibrarySystem.API.Controllers
 
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<IActionResult> GetUsers([FromQuery] string? role = null)
+        public async Task<IActionResult> GetUsers([FromQuery] UserFilterDto filter)
         {
-            _logger.LogInformation("Kullanıcı listesi sorgulanıyor. Filtre: {Role}", role ?? "Tümü");
+            _logger.LogInformation("Kullanıcı listesi sorgulanıyor. Sayfa: {Page}, Filtreler: {@Filter}", filter.Page, filter);
+
             try
             {
-                var users = await _userService.GetUsersForListingAsync(role);
-                return Ok(users);
+                var result = await _userService.GetUsersForListingAsync(filter);
+                return Ok(result);
             }
-            catch (KeyNotFoundException ex)
+            catch (Exception ex)
             {
-                _logger.LogWarning("Kullanıcı listeleme uyarısı: {Message}", ex.Message);
-                return NotFound(new { message = ex.Message });
+                _logger.LogError(ex, "Kullanıcı listeleme sırasında hata.");
+                return StatusCode(500, new { message = "Sunucu hatası oluştu." });
             }
         }
 
@@ -43,12 +44,19 @@ namespace LibrarySystem.API.Controllers
             try
             {
                 var user = await _userService.GetUserDetailByIdAsync(id);
+
+                if (user == null)
+                {
+                    _logger.LogWarning("{UserId} id'li kullanıcı bulunamadı.", id);
+                    return NotFound(new { message = "Kullanıcı bulunamadı." });
+                }
+
                 return Ok(user);
             }
-            catch (KeyNotFoundException ex)
+            catch (Exception ex)
             {
-                _logger.LogWarning("Kullanıcı sorgulama (ID) başarısız: {UserId} bulunamadı.", id);
-                return NotFound(new { message = ex.Message });
+                _logger.LogError(ex, "Kullanıcı (ID) sorgulama hatası: {UserId}", id);
+                return StatusCode(500, new { message = ex.Message });
             }
         }
 
@@ -60,12 +68,19 @@ namespace LibrarySystem.API.Controllers
             try
             {
                 var user = await _userService.GetUserDetailByEmailAsync(email);
+
+                if (user == null)
+                {
+                    _logger.LogWarning("{Email} adresli kullanıcı bulunamadı.", email);
+                    return NotFound(new { message = "Kullanıcı bulunamadı." });
+                }
+
                 return Ok(user);
             }
-            catch (KeyNotFoundException ex)
+            catch (Exception ex)
             {
-                _logger.LogWarning("Kullanıcı sorgulama (Email) başarısız: {Email} bulunamadı.", email);
-                return NotFound(new { message = ex.Message });
+                _logger.LogError(ex, "Kullanıcı (Email) sorgulama hatası: {Email}", email);
+                return StatusCode(500, new { message = ex.Message });
             }
         }
     }

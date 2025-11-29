@@ -46,6 +46,7 @@ namespace LibrarySystem.API.Repositories
         public async Task<IEnumerable<CategoryResultDto>> GetAllCategoriesAsync()
         {
             return await _context.Categories
+                .OrderBy(c => c.Name)
                 .Select(c => new CategoryResultDto
                 {
                     Id = c.Id,

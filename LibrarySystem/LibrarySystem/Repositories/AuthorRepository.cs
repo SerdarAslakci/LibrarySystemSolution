@@ -45,5 +45,13 @@ namespace LibrarySystem.API.Repositories
                     a.FirstName.ToLower() == firstName.ToLower() &&
                     a.LastName.ToLower() == lastName.ToLower());
         }
+
+        public async Task<IEnumerable<Author>> GetAllAuthorsAsync()
+        {
+            return await _context.Authors
+                .OrderBy(a => a.FirstName)
+                .ThenBy(a => a.LastName)
+                .ToListAsync();
+        }
     }
 }

@@ -396,7 +396,7 @@ namespace LibrarySystem.API.Services
             return books;
         }
 
-        public async Task<Book?> GetBookByNameWithDetailsAsync(string name)
+        public async Task<IEnumerable<Book>?> GetBooksByNameWithDetailsAsync(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
@@ -406,18 +406,14 @@ namespace LibrarySystem.API.Services
 
             _logger.LogInformation("Kitap ismi ile detaylı arama başlatıldı. Aranan: {Name}", name);
 
-            var book = await _bookRepository.GetBookByNameWithDetailsAsync(name);
+            var books = await _bookRepository.GetBooksByNameWithDetailsAsync(name);
 
-            if (book == null)
+            if (!books.Any())
             {
                 _logger.LogWarning("İsim ile kitap arama sonucu boş: '{Name}' ile eşleşen veya benzer bir kitap bulunamadı.", name);
             }
-            else
-            {
-                _logger.LogInformation("Kitap ismi ile eşleşme bulundu. ID: {Id}, Başlık: {Title}", book.Id, book.Title);
-            }
 
-            return book;
+            return books;
         }
     }
 }

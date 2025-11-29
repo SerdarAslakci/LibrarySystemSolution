@@ -63,6 +63,37 @@ namespace LibrarySystem.API.Controllers
             }
         }
 
+
+        [HttpGet("get-by-name")]
+        public async Task<IActionResult> GetBookByNameWithDetails([FromQuery] string name)
+        {
+            _logger.LogInformation("Controller: Kitap ismiyle detaylı arama isteği alındı. Parametre: {Name}", name);
+
+            try
+            {
+                var result = await _bookService.GetBookByNameWithDetailsAsync(name);
+
+                if (result == null)
+                {
+                    _logger.LogWarning("Controller: Aranan isimle eşleşen kitap bulunamadı. Parametre: {Name}", name);
+                    return NotFound(new { message = $"'{name}' ismine benzer veya eşleşen bir kitap bulunamadı." });
+                }
+
+                _logger.LogInformation("Controller: Kitap başarıyla bulundu ve dönülüyor. Kitap ID: {Id}", result.Id);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Controller: Geçersiz arama parametresi.");
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Controller: Kitap aranırken beklenmeyen bir hata oluştu.");
+                return StatusCode(500, new { message = "Sunucu hatası oluştu." });
+            }
+        }
+
         [HttpGet("other-by-author")]
         public async Task<IActionResult> GetOtherBooksByAuthor([FromQuery] AuthorBooksRequestDto request)
         {

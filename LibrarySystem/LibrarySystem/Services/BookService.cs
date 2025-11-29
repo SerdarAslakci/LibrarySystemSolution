@@ -395,5 +395,29 @@ namespace LibrarySystem.API.Services
 
             return books;
         }
+
+        public async Task<Book?> GetBookByNameWithDetailsAsync(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                _logger.LogWarning("Kitap ismi ile arama başarısız: Parametre boş veya null.");
+                throw new ArgumentException("Arama yapılacak kitap ismi boş olamaz.", nameof(name));
+            }
+
+            _logger.LogInformation("Kitap ismi ile detaylı arama başlatıldı. Aranan: {Name}", name);
+
+            var book = await _bookRepository.GetBookByNameWithDetailsAsync(name);
+
+            if (book == null)
+            {
+                _logger.LogWarning("İsim ile kitap arama sonucu boş: '{Name}' ile eşleşen veya benzer bir kitap bulunamadı.", name);
+            }
+            else
+            {
+                _logger.LogInformation("Kitap ismi ile eşleşme bulundu. ID: {Id}, Başlık: {Title}", book.Id, book.Title);
+            }
+
+            return book;
+        }
     }
 }

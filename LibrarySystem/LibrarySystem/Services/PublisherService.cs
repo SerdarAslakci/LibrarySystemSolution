@@ -113,6 +113,24 @@ namespace LibrarySystem.API.Services
             return publishers ?? Enumerable.Empty<Publisher>();
         }
 
+        public async Task<bool> DeletePublisherByIdAsync(int id)
+        {
+            _logger.LogInformation("Yayınevi silme işlemi başlatıldı. ID: {PublisherId}", id);
+
+            var publisher = await _publisherRepository.GetByIdAsync(id);
+
+            if (publisher == null)
+            {
+                _logger.LogWarning("Silme başarısız: ID'si {Id} olan yayınevi bulunamadı.", id);
+                throw new KeyNotFoundException($"ID'si {id} olan yayınevi bulunamadı.");
+            }
+
+            await _publisherRepository.DeletePublisherByIdAsync(id);
+
+            _logger.LogInformation("Yayınevi başarıyla silindi. ID: {PublisherId}", id);
+
+            return true;
+        }
     }
 
 }

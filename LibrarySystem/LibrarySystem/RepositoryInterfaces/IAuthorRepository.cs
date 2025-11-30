@@ -10,6 +10,7 @@ namespace LibrarySystem.API.RepositoryInterfaces
         Task<Author?> GetByNameAsync(string firstName, string lastName);
         Task<Author> AddAuthorAsync(Author author);
         Task<bool> IsExistsAsync(string? firstName, string? lastName);
+        Task<bool> DeleteAuthorByIdAsync(int id);
 
     }
 }

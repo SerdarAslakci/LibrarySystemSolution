@@ -122,5 +122,24 @@ namespace LibrarySystem.API.Services
                 throw;
             }
         }
+
+        public async Task<bool> DeleteCategoryByIdAsync(int id)
+        {
+            _logger.LogInformation("Kategori silme işlemi başlatıldı. ID: {CategoryId}", id);
+
+            var category = await _categoryRepository.GetByIdAsync(id);
+
+            if (category == null)
+            {
+                _logger.LogWarning("Silme başarısız: ID'si {Id} olan kategori bulunamadı.", id);
+                throw new KeyNotFoundException($"ID'si {id} olan kategori bulunamadı.");
+            }
+
+            await _categoryRepository.DeleteCategoryByIdAsync(id);
+
+            _logger.LogInformation("Kategori başarıyla silindi. ID: {CategoryId}", id);
+
+            return true;
+        }
     }
 }

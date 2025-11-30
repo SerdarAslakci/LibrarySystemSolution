@@ -30,6 +30,19 @@ namespace LibrarySystem.API.Repositories
             return await _context.Publishers.AnyAsync(p => p.Name.ToLower().Contains(lowerName));
         }
 
+        public async Task<bool> DeletePublisherByIdAsync(int id)
+        {
+            var publisher = await _context.Publishers.FindAsync(id);
+
+            if (publisher == null)
+                return false;
+
+            _context.Publishers.Remove(publisher);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
         public async Task<IEnumerable<Publisher>> GetAllAsync()
         {
             return await _context.Publishers

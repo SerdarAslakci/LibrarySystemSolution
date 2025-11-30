@@ -109,18 +109,30 @@ namespace LibrarySystem.API.Services
                 });
             }
         }
-
-        public AuthorService(IAuthorRepository authorRepository, ILogger<AuthorService> logger)
-        {
-            _authorRepository = authorRepository;
-            _logger = logger;
-        }
-
         public async Task<IEnumerable<Author>> GetAllAuthorsAsync()
         {
             _logger.LogInformation("Service: Tüm yazarları getirme işlemi çağrıldı.");
 
             return await _authorRepository.GetAllAuthorsAsync();
+        }
+
+        public async Task<bool> DeleteAuthorByIdAsync(int id)
+        {
+            _logger.LogInformation("Yazar silme işlemi başlatıldı. ID: {AuthorId}", id);
+
+            var author = await _authorRepository.GetByIdAsync(id);
+
+            if (author == null)
+            {
+                _logger.LogWarning("Silme başarısız: ID'si {Id} olan yazar bulunamadı.", id);
+                throw new KeyNotFoundException($"ID'si {id} olan yazar bulunamadı.");
+            }
+
+            await _authorRepository.DeleteAuthorByIdAsync(id);
+
+            _logger.LogInformation("Yazar başarıyla silindi. ID: {AuthorId}", id);
+
+            return true;
         }
     }
 }

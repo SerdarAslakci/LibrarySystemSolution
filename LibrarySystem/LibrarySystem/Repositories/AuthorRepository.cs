@@ -103,7 +103,7 @@ namespace LibrarySystem.API.Repositories
 
             return await _context.Authors
                 .FromSqlInterpolated($@"
-                    SELECT * FROM Authors 
+                    SELECT TOP (10) * FROM Authors 
                     WHERE 
                         (
                             {fName} = '' 

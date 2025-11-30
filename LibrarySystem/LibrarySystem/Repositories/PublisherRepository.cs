@@ -82,7 +82,7 @@ namespace LibrarySystem.API.Repositories
 
             return await _context.Publishers
                 .FromSqlInterpolated($@"
-                    SELECT * FROM Publishers 
+                    SELECT TOP (10) * FROM Publishers 
                     WHERE 
                         DIFFERENCE(Name, {name}) >= 3 
                         OR SOUNDEX(Name) = SOUNDEX({name}) 
@@ -94,7 +94,6 @@ namespace LibrarySystem.API.Repositories
                             ELSE 3                                -- Sadece ses benzerliği olanlar en altta
                         END
                 ")
-                .Take(10)
                 .ToListAsync();
         }
 

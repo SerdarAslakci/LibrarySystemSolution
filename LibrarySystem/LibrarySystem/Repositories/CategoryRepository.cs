@@ -40,7 +40,7 @@ namespace LibrarySystem.API.Repositories
 
             return await _context.Categories
                 .FromSqlInterpolated($@"
-                        SELECT * FROM Categories 
+                        SELECT TOP (10) * FROM Categories 
                         WHERE 
                             DIFFERENCE(Name, {name}) >= 3 
                             OR SOUNDEX(Name) = SOUNDEX({name}) 

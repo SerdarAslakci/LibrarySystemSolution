@@ -130,7 +130,28 @@ namespace LibrarySystem.API.Repositories
                             ELSE 2
                         END
                 ")
+                .Take(10)
                 .ToListAsync();
+        }
+        public async Task<PaginatedAuthorResult<Author>> GetAllAuthorsPageableAsync(int page, int pageSize)
+        {
+            var totalCount = await _context.Authors.CountAsync();
+
+            int skipCount = (page - 1) * pageSize;
+
+            var items = await _context.Authors
+                .OrderBy(a => a.FirstName)
+                .ThenBy(a => a.LastName)
+                .Skip(skipCount)    
+                .Take(pageSize)     
+                .ToListAsync();
+
+            return new PaginatedAuthorResult<Author>(
+                items,
+                totalCount,
+                page,
+                pageSize
+            );
         }
     }
 }

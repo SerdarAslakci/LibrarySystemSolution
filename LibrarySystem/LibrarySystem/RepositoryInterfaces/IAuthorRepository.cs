@@ -6,6 +6,7 @@ namespace LibrarySystem.API.RepositoryInterfaces
     public interface IAuthorRepository
     {
         Task<IEnumerable<Author>> GetAllAuthorsAsync();
+        Task<PaginatedAuthorResult<Author>> GetAllAuthorsPageableAsync(int page, int pageSize);
         Task<IEnumerable<Author>> GetAuthorsByNameAsync(string firstName, string lastName);
         Task<Author?> GetByIdAsync(int id);
         Task<Author?> GetByNameAsync(string firstName, string lastName);

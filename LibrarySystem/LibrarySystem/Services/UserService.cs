@@ -21,6 +21,7 @@ namespace LibrarySystem.API.Services
 
         public async Task<PaginatedResult<UserViewDto>> GetUsersForListingAsync(UserFilterDto filter)
         {
+            _logger.LogInformation("Kullanıcı listesi sorgulama işlemi başlatıldı. Sayfa: {Page}, Sayfa Boyutu: {PageSize}", filter.Page, filter.PageSize);
             return await _userRepository.GetUsersWithFilterAsync(filter);
         }
 

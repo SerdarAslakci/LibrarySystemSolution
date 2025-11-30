@@ -28,33 +28,23 @@ namespace LibrarySystem.API.Services
         {
             _logger.LogInformation("Dashboard verileri alınmaya başlıyor.");
 
-            var totalBooksTask = _bookRepository.GetBookCountAsync();
-            var normalUsersTask = _userRepository.GetUserCountAsync();
-            var loanedBooksTask = _loanRepository.GetLoanedBookCountAsync();
-            var overdueLoansTask = _loanRepository.GetOverdueLoanCountAsync();
-
-            try
-            {
-                // Task.WhenAll ile hepsinin tamamlanmasını bekliyoruz.
-                // Hepsnini paralel olarak çalışmasını sağlar.
-                await Task.WhenAll(totalBooksTask, normalUsersTask, loanedBooksTask, overdueLoansTask);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Dashboard verileri alınırken bir veya daha fazla görev başarısız oldu.");
-                throw;
-            }
+            var totalBooks = await _bookRepository.GetBookCountAsync();
+            var normalUsers = await _userRepository.GetUserCountAsync();
+            var loanedBooks = await _loanRepository.GetLoanedBookCountAsync();
+            var overdueLoans = await _loanRepository.GetOverdueLoanCountAsync();
 
             var dashboard = new DashboardDto
             {
-                TotalBookCount = await totalBooksTask,
-                UserCount = await normalUsersTask,
-                LoanedBookCount = await loanedBooksTask,
-                OverdueLoanCount = await overdueLoansTask
+                TotalBookCount = totalBooks,
+                UserCount = normalUsers,
+                LoanedBookCount = loanedBooks,
+                OverdueLoanCount = overdueLoans
             };
 
             _logger.LogInformation("Dashboard verileri başarıyla alındı.");
+
             return dashboard;
         }
+
     }
 }

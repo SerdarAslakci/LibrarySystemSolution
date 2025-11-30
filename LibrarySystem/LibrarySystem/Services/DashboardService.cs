@@ -33,11 +33,17 @@ namespace LibrarySystem.API.Services
             var loanedBooksTask = _loanRepository.GetLoanedBookCountAsync();
             var overdueLoansTask = _loanRepository.GetOverdueLoanCountAsync();
 
-            // Repository çağrılarını paralel başlatıyoruz ve Task.WhenAll ile hepsinin tamamlanmasını bekliyoruz.
-            // Bu sayede her bir veri kaynağı birbirini beklemeden eş zamanlı çalışır, 
-            // toplam bekleme süresi azalır ve dashboard performansı artar.
-            // Daha sonra her bir görevin sonucunu await ederek DashboardDto'ya yerleştiriyoruz.
-            await Task.WhenAll(totalBooksTask, normalUsersTask, loanedBooksTask, overdueLoansTask);
+            try
+            {
+                // Task.WhenAll ile hepsinin tamamlanmasını bekliyoruz.
+                // Hepsnini paralel olarak çalışmasını sağlar.
+                await Task.WhenAll(totalBooksTask, normalUsersTask, loanedBooksTask, overdueLoansTask);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Dashboard verileri alınırken bir veya daha fazla görev başarısız oldu.");
+                throw;
+            }
 
             var dashboard = new DashboardDto
             {
@@ -48,9 +54,7 @@ namespace LibrarySystem.API.Services
             };
 
             _logger.LogInformation("Dashboard verileri başarıyla alındı.");
-
             return dashboard;
         }
-
     }
 }

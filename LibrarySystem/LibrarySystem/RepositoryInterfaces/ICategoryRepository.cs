@@ -10,5 +10,6 @@ namespace LibrarySystem.API.RepositoryInterfaces
         Task<Category> AddCategoryAsync(Category category);
         Task<Category?> GetByIdAsync(int id);
         Task<Category?> GetByNameAsync(string name);
+        Task<bool> DeleteCategoryByIdAsync(int id);
     }
 }

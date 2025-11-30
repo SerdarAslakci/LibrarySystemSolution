@@ -10,6 +10,7 @@ namespace LibrarySystem.API.ServiceInterfaces
         Task<Publisher?> GetByIdAsync(int id);
         Task<Publisher?> GetByNameAsync(string name);
         Task<Publisher> GetOrCreateAsync(int? id, string? name);
+        Task<bool> DeletePublisherByIdAsync(int id);
 
     }
 }

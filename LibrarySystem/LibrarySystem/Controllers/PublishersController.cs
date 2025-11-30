@@ -1,5 +1,6 @@
 ﻿using LibrarySystem.API.ServiceInterfaces;
 using LibrarySystem.Models.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -66,6 +67,31 @@ namespace LibrarySystem.API.Controllers
             {
                 _logger.LogWarning("'{Name}' adlı yayınevi bulunamadı.", name);
                 return NotFound(ex.Message);
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeletePublisher(int id)
+        {
+
+            _logger.LogInformation("Publisher ID bilgisine göre silme isteği alındı. ID: {Id}", id);
+
+            try
+            {
+                var isDeleted = await _publisherService.DeletePublisherByIdAsync(id);
+                return Ok(isDeleted);
+            }
+            catch (KeyNotFoundException ex)
+            {
+
+                _logger.LogWarning(ex, "Silinmek istenen yayınevi bulunamadı. ID: {Id}", id);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Yayınevi silinirken sunucu hatası oluştu. ID: {Id}", id);
+                return StatusCode(500, "Sunucu hatası.");
             }
         }
     }

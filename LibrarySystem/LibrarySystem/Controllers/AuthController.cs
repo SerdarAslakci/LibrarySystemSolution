@@ -2,7 +2,7 @@
 using LibrarySystem.API.Dtos.ErrorDtos;
 using LibrarySystem.API.ServiceInterfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging; // Logger için gerekli
+using Microsoft.Extensions.Logging; 
 using System;
 using System.Linq;
 
@@ -12,7 +12,7 @@ using System.Linq;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
-    private readonly ILogger<AuthController> _logger; // Logger eklendi
+    private readonly ILogger<AuthController> _logger;
 
     public AuthController(IAuthService authService, ILogger<AuthController> logger)
     {
@@ -93,7 +93,6 @@ public class AuthController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            // Kullanıcı adı/şifre hatalarını Warning olarak logluyoruz (Güvenlik izleme için)
             _logger.LogWarning("Giriş başarısız (Yetkisiz): {Message}. Email: {Email}", ex.Message, loginDto?.Email);
             return Unauthorized(new ErrorDto
             {

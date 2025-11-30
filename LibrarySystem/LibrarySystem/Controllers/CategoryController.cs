@@ -1,6 +1,7 @@
 ﻿using LibrarySystem.API.Dtos.CategoryDtos;
 using LibrarySystem.API.ServiceInterfaces;
 using LibrarySystem.Models.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,6 +20,7 @@ namespace LibrarySystem.API.Controllers
             _logger = logger;
         }
 
+        [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> AddCategory([FromBody] CategoryCreateDto categoryDto)
         {
@@ -97,6 +99,30 @@ namespace LibrarySystem.API.Controllers
             {
                 _logger.LogError(ex, "ID: {Id} ile kategori getirilirken hata oluştu.", id);
                 return StatusCode(StatusCodes.Status500InternalServerError, "Kategori getirilemedi.");
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCategory(int id)
+        {
+
+            _logger.LogInformation("Category ID bilgisine göre silme isteği alındı. ID: {Id}", id);
+
+            try
+            {
+                var isDeleted = await _categoryService.DeleteCategoryByIdAsync(id);
+                return Ok(isDeleted);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Silinmek istenen kategori bulunamadı. ID: {Id}", id);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Kategori silinirken sunucu hatası oluştu. ID: {Id}", id);
+                return StatusCode(500, "Sunucu hatası.");
             }
         }
     }

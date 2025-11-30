@@ -53,5 +53,40 @@ namespace LibrarySystem.API.Repositories
                 .ThenBy(a => a.LastName)
                 .ToListAsync();
         }
+
+        public async Task<bool> DeleteAuthorByIdAsync(int id)
+        {
+            var author = await _context.Authors
+                .Include(a => a.BookAuthors)
+                .ThenInclude(ba => ba.Book)
+                .ThenInclude(b => b.BookAuthors) 
+                .FirstOrDefaultAsync(x => x.Id == id);
+
+            if (author == null) return false;
+
+            var booksToDelete = new List<Book>();
+
+            foreach (var bookAuthor in author.BookAuthors)
+            {
+                var book = bookAuthor.Book;
+
+                if (book.BookAuthors.Count == 1)
+                {
+                    booksToDelete.Add(book);
+                }
+            }
+
+            if (booksToDelete.Any())
+            {
+                _context.Books.RemoveRange(booksToDelete);
+            }
+
+            _context.Authors.Remove(author);
+
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
     }
 }

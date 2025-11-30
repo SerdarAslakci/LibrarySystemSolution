@@ -1,4 +1,6 @@
-﻿using LibrarySystem.API.ServiceInterfaces;
+﻿using LibrarySystem.API.Dtos.AuthorDtos;
+using LibrarySystem.API.ServiceInterfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,6 +33,87 @@ namespace LibrarySystem.API.Controllers
                 _logger.LogError(ex, "Controller: Yazarları getirirken kritik bir hata oluştu.");
 
                 return StatusCode(500, "Sunucu tarafında bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.");
+            }
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            try
+            {
+                var author = await _authorService.GetByIdAsync(id);
+                return Ok(author);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Yazar bulunamadı. ID: {Id}", id);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Yazar getirilirken beklenmedik bir hata oluştu.");
+                return StatusCode(500, "Sunucu hatası.");
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<IActionResult> CreateAuthor([FromBody] CreateAuthorDto authorDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var createdAuthor = await _authorService.AddAuthorAsync(authorDto);
+
+                return Ok(createdAuthor);
+            }
+            catch (ArgumentNullException ex)
+            {
+                _logger.LogWarning(ex, "Eksik argüman hatası.");
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Geçersiz argüman hatası.");
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Çakışma hatası (Duplicate).");
+                return Conflict(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Yazar eklenirken beklenmedik bir hata oluştu.");
+                return StatusCode(500, "Sunucu hatası oluştu.");
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteAuthor(int id)
+        {
+
+            _logger.LogInformation("Author ID bilgisine göre silme isteği alındı. ID: {Id}", id);
+            try
+            {
+                var isDeleted = await _authorService.DeleteAuthorByIdAsync(id);
+
+                return Ok(isDeleted);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Silme işlemi sırasında yazar bulunamadı. ID: {Id}", id);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Yazar silinirken beklenmedik bir hata oluştu. ID: {Id}", id);
+                return StatusCode(500, "Sunucu hatası.");
             }
         }
     }

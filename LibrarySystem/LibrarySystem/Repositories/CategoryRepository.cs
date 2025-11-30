@@ -14,8 +14,6 @@ namespace LibrarySystem.API.Repositories
         {
             _context = context;
         }
-
-        
         public async Task<Category> AddCategoryAsync(Category category)
         {
             var addedCategory = await _context.Categories.AddAsync(category);
@@ -54,6 +52,21 @@ namespace LibrarySystem.API.Repositories
                     BookCount = _context.Books.Count(b => b.CategoryId == c.Id)
                 })
                 .ToListAsync();
+        }
+
+        public async Task<bool> DeleteCategoryByIdAsync(int id)
+        {
+            var category = await _context.Categories.FindAsync(id);
+
+            if (category == null)
+            {
+                return false;
+            }
+
+            _context.Categories.Remove(category);
+            await _context.SaveChangesAsync();
+
+            return true;
         }
     }
 }

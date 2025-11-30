@@ -175,5 +175,38 @@ namespace LibrarySystem.API.Controllers
                 return StatusCode(500, "Sunucu tarafında bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.");
             }
         }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateAuthor(int id, [FromBody] UpdateAuthorDto authorDto)
+        {
+            _logger.LogInformation("Yazar güncelleme isteği alındı. ID: {Id}", id);
+
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Yazar güncelleme işlemi başarısız. Geçersiz model durumu. ID: {Id}, Hatalar: {Errors}",
+                    id, ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var result = await _authorService.UpdateAuthorAsync(id, authorDto);
+
+                _logger.LogInformation("Yazar güncelleme isteği başarıyla tamamlandı. ID: {Id}", id);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning("Güncellenmek istenen yazar bulunamadı. ID: {Id}", id);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Yazar güncellenirken sunucu taraflı bir hata oluştu. ID: {Id}", id);
+                return StatusCode(500, new { message = "İşlem sırasında sunucu kaynaklı bir hata oluştu. Lütfen daha sonra tekrar deneyiniz." });
+            }
+        }
     }
 }

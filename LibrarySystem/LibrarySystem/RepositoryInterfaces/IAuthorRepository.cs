@@ -11,6 +11,7 @@ namespace LibrarySystem.API.RepositoryInterfaces
         Task<Author?> GetByIdAsync(int id);
         Task<Author?> GetByNameAsync(string firstName, string lastName);
         Task<Author> AddAuthorAsync(Author author);
+        Task<Author?> UpdateAuthorAsync(int id, Author author);
         Task<bool> IsExistsAsync(string? firstName, string? lastName);
         Task<bool> DeleteAuthorByIdAsync(int id);
 

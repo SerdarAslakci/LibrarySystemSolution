@@ -190,5 +190,39 @@ namespace LibrarySystem.API.Controllers
                 return StatusCode(500, "Sunucu tarafında bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.");
             }
         }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdateCategory(int id, [FromBody] UpdateCategoryDto categoryDto)
+        {
+            _logger.LogInformation("Kategori güncelleme isteği alındı. ID: {Id}", id);
+
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Kategori güncelleme işlemi başarısız. Geçersiz model durumu. ID: {Id}, Hatalar: {Errors}",
+                    id, ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var result = await _categoryService.UpdateCategoryAsync(id, categoryDto);
+
+                _logger.LogInformation("Kategori başarıyla güncellendi. ID: {Id}", id);
+
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning("Güncellenmek istenen kategori bulunamadı. ID: {Id}", id);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Kategori güncellenirken sunucu taraflı kritik bir hata oluştu. ID: {Id}", id);
+                return StatusCode(500, new { message = "İşlem sırasında sunucu kaynaklı bir hata oluştu. Lütfen daha sonra tekrar deneyiniz." });
+            }
+        }
     }
 }

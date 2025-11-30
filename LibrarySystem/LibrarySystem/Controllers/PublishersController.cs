@@ -112,6 +112,43 @@ namespace LibrarySystem.API.Controllers
         }
 
         [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<IActionResult> CreatePublisher([FromBody] CreatePublisherDto publisherDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Yayınevi ekleme başarısız: Geçersiz model durumu.");
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                _logger.LogInformation("Controller: Yeni yayınevi oluşturma isteği alındı. İsim: {Name}", publisherDto.Name);
+
+                var createdPublisher = await _publisherService.AddPublisherAsync(publisherDto);
+
+                _logger.LogInformation("Controller: Yayınevi başarıyla oluşturuldu. ID: {Id}", createdPublisher.Id);
+
+                return CreatedAtAction(nameof(GetById), new { id = createdPublisher.Id }, createdPublisher);
+            }
+            catch (ArgumentNullException ex)
+            {
+                _logger.LogWarning(ex, "Yayınevi ekleme başarısız: Eksik veri (DTO null).");
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Yayınevi ekleme başarısız: Yayınevi zaten mevcut.");
+                return Conflict(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Controller: Yayınevi eklenirken beklenmedik bir hata oluştu.");
+                return StatusCode(500, "Sunucu tarafında bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.");
+            }
+        }
+
+        [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeletePublisher(int id)
         {
@@ -133,6 +170,39 @@ namespace LibrarySystem.API.Controllers
             {
                 _logger.LogError(ex, "Yayınevi silinirken sunucu hatası oluştu. ID: {Id}", id);
                 return StatusCode(500, "Sunucu hatası.");
+            }
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> UpdatePublisher(int id, [FromBody] UpdatePublisherDto publisherDto)
+        {
+            _logger.LogInformation("Yayınevi güncelleme isteği alındı. ID: {Id}", id);
+
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Yayınevi güncelleme işlemi başarısız. Geçersiz model durumu. ID: {Id}, Hatalar: {Errors}",
+                    id, ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var result = await _publisherService.UpdatePublisherAsync(id, publisherDto);
+
+                _logger.LogInformation("Yayınevi başarıyla güncellendi. ID: {Id}", id);
+                return Ok(result);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning("Güncellenmek istenen yayınevi bulunamadı. ID: {Id}", id);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Yayınevi güncellenirken sunucu taraflı kritik bir hata oluştu. ID: {Id}", id);
+                return StatusCode(500, new { message = "İşlem sırasında sunucu kaynaklı bir hata oluştu. Lütfen daha sonra tekrar deneyiniz." });
             }
         }
     }

@@ -149,5 +149,26 @@ namespace LibrarySystem.API.Services
 
             return categories;
         }
+
+        public async Task<Category?> UpdateCategoryAsync(int id, UpdateCategoryDto categoryDto)
+        {
+            _logger.LogInformation("Kategori güncelleme işlemi başladı. ID: {Id}", id);
+
+            var existingCategory = await _categoryRepository.GetByIdAsync(id);
+
+            if (existingCategory == null)
+            {
+                _logger.LogWarning("ID: {Id} olan kategori bulunamadı.", id);
+                throw new KeyNotFoundException($"ID: {id} olan kategori bulunamadı.");
+            }
+
+            existingCategory.Name = categoryDto.Name;
+
+            var updatedCategory = await _categoryRepository.UpdateCategoryAsync(id, existingCategory);
+
+            _logger.LogInformation("Kategori başarıyla güncellendi. ID: {Id}", id);
+
+            return updatedCategory;
+        }
     }
 }

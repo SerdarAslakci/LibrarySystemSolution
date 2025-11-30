@@ -153,5 +153,21 @@ namespace LibrarySystem.API.Repositories
                 pageSize
             );
         }
+
+        public async Task<Author?> UpdateAuthorAsync(int id, Author author)
+        {
+            var existingAuthor = await _context.Authors.FindAsync(id);
+
+            if (existingAuthor == null)
+            {
+                return null;
+            }
+
+            existingAuthor.FirstName = author.FirstName;
+            existingAuthor.LastName = author.LastName;
+
+            await _context.SaveChangesAsync();
+            return existingAuthor;
+        }
     }
 }

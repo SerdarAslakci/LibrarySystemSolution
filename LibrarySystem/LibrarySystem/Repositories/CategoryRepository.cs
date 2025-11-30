@@ -58,15 +58,27 @@ namespace LibrarySystem.API.Repositories
 
         public async Task<IEnumerable<CategoryResultDto>> GetAllCategoriesAsync()
         {
-            return await _context.Categories
-                .OrderBy(c => c.Name)
-                .Select(c => new CategoryResultDto
+            var query = _context.Categories
+                .GroupJoin(_context.Books,
+                    category => category.Id,
+                    book => book.CategoryId,
+                    (category, books) => new
+                    {
+                        Category = category,
+                        BookCount = books.Count()
+                    })
+                .OrderBy(x => x.Category.Name);
+
+            var items = await query
+                .Select(x => new CategoryResultDto
                 {
-                    Id = c.Id,
-                    Name = c.Name,
-                    BookCount = _context.Books.Count(b => b.CategoryId == c.Id)
+                    Id = x.Category.Id,
+                    Name = x.Category.Name,
+                    BookCount = x.BookCount 
                 })
                 .ToListAsync();
+
+            return items;
         }
 
         public async Task<bool> DeleteCategoryByIdAsync(int id)
@@ -90,15 +102,25 @@ namespace LibrarySystem.API.Repositories
 
             int skipCount = (page - 1) * pageSize;
 
-            var items = await _context.Categories
-                .OrderBy(c => c.Name) 
-                .Skip(skipCount)      
-                .Take(pageSize)
-                .Select(c => new CategoryResultDto
+            var query = _context.Categories
+                .GroupJoin(_context.Books,
+                    category => category.Id,
+                    book => book.CategoryId,
+                    (category, books) => new
+                    {
+                        Category = category,
+                        BookCount = books.Count()
+                    })
+                .OrderBy(x => x.Category.Name)
+                .Skip(skipCount)
+                .Take(pageSize);
+
+            var items = await query
+                .Select(x => new CategoryResultDto
                 {
-                    Id = c.Id,
-                    Name = c.Name,
-                    BookCount = _context.Books.Count(b => b.CategoryId == c.Id)
+                    Id = x.Category.Id,
+                    Name = x.Category.Name,
+                    BookCount = x.BookCount 
                 })
                 .ToListAsync();
 
@@ -108,6 +130,21 @@ namespace LibrarySystem.API.Repositories
                 page,
                 pageSize
             );
+        }
+
+        public async Task<Category?> UpdateCategoryAsync(int id, Category category)
+        {
+            var existingCategory = await _context.Categories.FindAsync(id);
+
+            if (existingCategory == null)
+            {
+                return null;
+            }
+
+            existingCategory.Name = category.Name;
+
+            await _context.SaveChangesAsync();
+            return existingCategory;
         }
     }
 }

@@ -7,6 +7,7 @@ namespace LibrarySystem.API.RepositoryInterfaces
     public interface IPublisherRepository
     {
         Task<Publisher> AddAsync(Publisher publisher);
+        Task<Publisher?> UpdatePublisherAsync(int id, Publisher publisher);
         Task<bool> AnyAsync(string name);
         Task<Publisher?> GetByIdAsync(int id);
         Task<IEnumerable<Publisher>> GetByNameAsync(string name);

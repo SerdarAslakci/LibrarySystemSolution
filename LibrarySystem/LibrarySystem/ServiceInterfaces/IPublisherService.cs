@@ -8,7 +8,7 @@ namespace LibrarySystem.API.ServiceInterfaces
         Task<bool> IsExistsAsync(string? name);
         Task<IEnumerable<Publisher>> GetAllAsync();
         Task<Publisher?> GetByIdAsync(int id);
-        Task<Publisher?> GetByNameAsync(string name);
+        Task<IEnumerable<Publisher>> GetByNameAsync(string name);
         Task<Publisher> GetOrCreateAsync(int? id, string? name);
         Task<bool> DeletePublisherByIdAsync(int id);
 

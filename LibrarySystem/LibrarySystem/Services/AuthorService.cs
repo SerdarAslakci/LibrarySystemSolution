@@ -81,7 +81,7 @@ namespace LibrarySystem.API.Services
             return author;
         }
 
-        public async Task<Author> GetOrCreateAsync(int? id, string? firstName, string? lastName)
+        public async Task<Author?> GetOrCreateAsync(int? id, string? firstName, string? lastName)
         {
             if (id.HasValue)
             {
@@ -96,7 +96,7 @@ namespace LibrarySystem.API.Services
 
             try
             {
-                return await GetByNameAsync(firstName, lastName);
+                return (await GetAuthorsByNameAsync(firstName, lastName)).First();
             }
             catch (KeyNotFoundException)
             {
@@ -133,6 +133,17 @@ namespace LibrarySystem.API.Services
             _logger.LogInformation("Yazar başarıyla silindi. ID: {AuthorId}", id);
 
             return true;
+        }
+
+        public async Task<IEnumerable<Author>> GetAuthorsByNameAsync(string firstName, string lastName)
+        {
+            _logger.LogInformation("Service: İsimle yazar arama işlemi çağrıldı. İsim: {FirstName} {LastName}", firstName, lastName);
+
+            var authors = await _authorRepository.GetAuthorsByNameAsync(firstName, lastName);
+
+            _logger.LogInformation("{AuthorCount} yazar bulundu.", authors.Count());
+
+            return authors;
         }
     }
 }

@@ -61,19 +61,16 @@ namespace LibrarySystem.API.Services
             return category;
         }
 
-        public async Task<Category?> GetByNameAsync(string name)
+        public async Task<IEnumerable<Category>> GetByNameAsync(string name)
         {
-            var category = await _categoryRepository.GetByNameAsync(name);
-            if (category == null)
-            {
-                _logger.LogWarning("Kategori sorgulama başarısız: '{Name}' bulunamadı.", name);
-                throw new KeyNotFoundException($"Adı '{name}' olan kategori bulunamadı.");
-            }
+            _logger.LogInformation("Kategori adıyla sorgulama başlatıldı: {CategoryName}", name);
+            var categorys = await _categoryRepository.GetByNameAsync(name);
 
-            return category;
+            _logger.LogInformation("{Count} adet kategori bulundu isimle: {CategoryName}", categorys.Count(), name);
+            return categorys;
         }
 
-        public async Task<Category> GetOrCreateAsync(int? id, string? name)
+        public async Task<Category?> GetOrCreateAsync(int? id, string? name)
         {
             if (id.HasValue)
             {
@@ -88,7 +85,7 @@ namespace LibrarySystem.API.Services
 
             try
             {
-                return await GetByNameAsync(name);
+                return (await GetByNameAsync(name)).First();
             }
             catch (KeyNotFoundException)
             {

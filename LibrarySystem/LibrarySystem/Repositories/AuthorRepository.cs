@@ -88,5 +88,49 @@ namespace LibrarySystem.API.Repositories
             return true;
         }
 
+        public async Task<IEnumerable<Author>> GetAuthorsByNameAsync(string firstName, string lastName)
+        {
+            var fName = firstName ?? string.Empty;
+            var lName = lastName ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(fName) && string.IsNullOrWhiteSpace(lName))
+            {
+                return new List<Author>();
+            }
+
+            var firstPattern = $"%{fName}%";
+            var lastPattern = $"%{lName}%";
+
+            return await _context.Authors
+                .FromSqlInterpolated($@"
+                    SELECT * FROM Authors 
+                    WHERE 
+                        (
+                            {fName} = '' 
+                            OR 
+                            -- SOUNDEX ve DIFFERENCE silindi. Sadece içinde geçiyor mu diye bakıyoruz.
+                            -- COLLATE Turkish_CI_AS: Büyük/Küçük harf sorununu çözer (reşat = Reşat)
+                            FirstName COLLATE Turkish_CI_AS LIKE {firstPattern}
+                        )
+                        AND
+                        (
+                            {lName} = '' 
+                            OR 
+                            LastName COLLATE Turkish_CI_AS LIKE {lastPattern}
+                        )
+                    ORDER BY 
+                        CASE 
+                            -- Sıralama Mantığı:
+                            -- 1. Tam Eşleşme (En Üste)
+                            WHEN (FirstName COLLATE Turkish_CI_AS = {fName} OR {fName} = '') 
+                                 AND (LastName COLLATE Turkish_CI_AS = {lName} OR {lName} = '') 
+                            THEN 1
+                    
+                            -- 2. İçinde Geçenler (Alta)
+                            ELSE 2
+                        END
+                ")
+                .ToListAsync();
+        }
     }
 }

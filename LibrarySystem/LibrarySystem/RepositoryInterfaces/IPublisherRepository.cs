@@ -8,7 +8,7 @@ namespace LibrarySystem.API.RepositoryInterfaces
         Task<Publisher> AddAsync(Publisher publisher);
         Task<bool> AnyAsync(string name);
         Task<Publisher?> GetByIdAsync(int id);
-        Task<Publisher?> GetByNameAsync(string name);
+        Task<IEnumerable<Publisher>> GetByNameAsync(string name);
         Task<IEnumerable<Publisher>> GetAllAsync();
         Task<bool> DeletePublisherByIdAsync(int id);
     }

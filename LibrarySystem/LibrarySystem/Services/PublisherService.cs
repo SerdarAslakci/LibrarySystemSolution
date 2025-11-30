@@ -17,7 +17,7 @@ namespace LibrarySystem.API.Services
             _logger = logger;
         }
 
-        public async Task<Publisher> AddPublisherAsync(Publisher publisher)
+        public async Task<Publisher> AddPublisherAsync(CreatePublisherDto publisher)
         {
             _logger.LogInformation("Yeni yayınevi ekleme isteği: {PublisherName}", publisher?.Name);
 
@@ -34,7 +34,12 @@ namespace LibrarySystem.API.Services
                 throw new InvalidOperationException("Bu yayınevi zaten mevcut.");
             }
 
-            var addedPublisher = await _publisherRepository.AddAsync(publisher);
+            var publisherEntity = new Publisher
+            {
+                Name = publisher.Name
+            };
+
+            var addedPublisher = await _publisherRepository.AddAsync(publisherEntity);
 
             _logger.LogInformation("Yayınevi başarıyla eklendi. ID: {Id}, İsim: {Name}", addedPublisher.Id, addedPublisher.Name);
 
@@ -89,7 +94,7 @@ namespace LibrarySystem.API.Services
             catch (KeyNotFoundException)
             {
                 _logger.LogInformation("GetOrCreate: '{Name}' bulunamadı, yeni kayıt oluşturuluyor.", name);
-                return await AddPublisherAsync(new Publisher { Name = name });
+                return await AddPublisherAsync(new CreatePublisherDto { Name = name });
             }
         }
 
@@ -143,6 +148,28 @@ namespace LibrarySystem.API.Services
             );
 
             return publishersResult;
+        }
+
+        public async Task<Publisher?> UpdatePublisherAsync(int id, UpdatePublisherDto publisherDto)
+        {
+            _logger.LogInformation("Yayınevi güncelleme isteği alındı. ID: {PublisherId}", id);
+
+            var publisherData = new Publisher
+            {
+                Name = publisherDto.Name
+            };
+
+            var updatedPublisher = await _publisherRepository.UpdatePublisherAsync(id, publisherData);
+
+            if (updatedPublisher == null)
+            {
+                _logger.LogWarning("ID: {PublisherId} olan yayınevi bulunamadı.", id);
+                throw new KeyNotFoundException($"ID: {id} olan yayınevi bulunamadı.");
+            }
+
+            _logger.LogInformation("Yayınevi başarıyla güncellendi. ID: {PublisherId}", id);
+
+            return updatedPublisher;
         }
     }
 

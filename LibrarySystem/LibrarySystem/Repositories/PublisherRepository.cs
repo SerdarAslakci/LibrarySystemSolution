@@ -97,5 +97,21 @@ namespace LibrarySystem.API.Repositories
                 .Take(10)
                 .ToListAsync();
         }
+
+        public async Task<Publisher?> UpdatePublisherAsync(int id, Publisher publisher)
+        {
+            var existingPublisher = await _context.Publishers.FindAsync(id);
+
+            if (existingPublisher == null)
+            {
+                return null;
+            }
+
+            existingPublisher.Name = publisher.Name;
+
+            await _context.SaveChangesAsync();
+
+            return existingPublisher;
+        }
     }
 }

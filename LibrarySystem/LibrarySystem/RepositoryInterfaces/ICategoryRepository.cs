@@ -13,5 +13,6 @@ namespace LibrarySystem.API.RepositoryInterfaces
         Task<Category?> GetByIdAsync(int id);
         Task<IEnumerable<Category>> GetByNameAsync(string name);
         Task<bool> DeleteCategoryByIdAsync(int id);
+        Task<Category?> UpdateCategoryAsync(int id, Category category);
     }
 }

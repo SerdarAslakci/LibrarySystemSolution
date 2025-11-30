@@ -6,6 +6,7 @@ namespace LibrarySystem.API.ServiceInterfaces
     public interface IAuthorService
     {
         Task<Author> AddAuthorAsync(CreateAuthorDto authorDto);
+        Task<Author?> UpdateAuthorAsync(int id, UpdateAuthorDto authorDto);
         Task<bool> IsExistsAsync(string? firstName, string? lastName);
         Task<IEnumerable<Author>> GetAllAuthorsAsync();
         Task<PaginatedAuthorResult<Author>> GetAllAuthorsPageableAsync(int page, int pageSize);

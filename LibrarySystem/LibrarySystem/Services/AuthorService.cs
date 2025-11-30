@@ -154,5 +154,28 @@ namespace LibrarySystem.API.Services
             _logger.LogInformation("Sayfalı yazar listeleme işlemi tamamlandı. Toplam Yazar: {TotalCount}, Toplam Sayfa: {TotalPages}", authors.TotalCount, authors.TotalPages);
             return authors;
         }
+
+        public async Task<Author?> UpdateAuthorAsync(int id, UpdateAuthorDto authorDto)
+        {
+            _logger.LogInformation("Yazar güncelleme işlemi başladı. ID: {Id}", id);
+
+            var authorData = new Author
+            {
+                FirstName = authorDto.FirstName,
+                LastName = authorDto.LastName
+            };
+
+            var updatedAuthor = await _authorRepository.UpdateAuthorAsync(id, authorData);
+
+            if (updatedAuthor == null)
+            {
+                _logger.LogWarning("ID: {Id} olan yazar bulunamadı.", id);
+                throw new KeyNotFoundException($"ID: {id} olan yazar bulunamadı.");
+            }
+
+            _logger.LogInformation("Yazar başarıyla güncellendi. ID: {Id}", id);
+
+            return updatedAuthor;
+        }
     }
 }

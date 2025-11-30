@@ -12,6 +12,7 @@ namespace LibrarySystem.API.ServiceInterfaces
         Task<Category?> GetOrCreateAsync(int? id, string? name);
         Task<IEnumerable<CategoryResultDto>> GetAllCategoriesAsync();
         Task<PaginatedCategoryResult<CategoryResultDto>> GetAllCategoriesPageableAsync(int page, int pageSize);
+        Task<Category?> UpdateCategoryAsync(int id, UpdateCategoryDto category);
         Task<bool> DeleteCategoryByIdAsync(int id);
     }
 }

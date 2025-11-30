@@ -1,4 +1,5 @@
-﻿using LibrarySystem.API.Dtos.CategoryDtos;
+﻿using LibrarySystem.API.Dtos.AuthorDtos;
+using LibrarySystem.API.Dtos.CategoryDtos;
 using LibrarySystem.API.ServiceInterfaces;
 using LibrarySystem.Models.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -152,6 +153,41 @@ namespace LibrarySystem.API.Controllers
             {
                 _logger.LogError(ex, "Kategori silinirken sunucu hatası oluştu. ID: {Id}", id);
                 return StatusCode(500, "Sunucu hatası.");
+            }
+        }
+
+        [HttpGet("pageable")]
+        public async Task<IActionResult> GetAllPageable([FromQuery] CategoryPageableDto pageableDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Geçersiz sayfalama parametreleri alındı.");
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                _logger.LogInformation(
+                    "Controller: Sayfalandırılmış kategori isteği alındı. Sayfa: {Page}, Sayfa Boyutu: {PageSize}",
+                    pageableDto.page,
+                    pageableDto.pageSize
+                );
+
+                var pageableCategoriesResult = await _categoryService.GetAllCategoriesPageableAsync(pageableDto.page, pageableDto.pageSize);
+
+                _logger.LogInformation(
+                    "Controller: Sayfalandırılmış kategori listeleme başarıyla tamamlandı. Toplam: {TotalCount}, Toplam Sayfa: {TotalPages}",
+                    pageableCategoriesResult.TotalCount,
+                    pageableCategoriesResult.TotalPages
+                );
+
+                return Ok(pageableCategoriesResult);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Controller: Sayfalandırılmış kategorileri getirirken beklenmedik bir hata oluştu.");
+
+                return StatusCode(500, "Sunucu tarafında bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.");
             }
         }
     }

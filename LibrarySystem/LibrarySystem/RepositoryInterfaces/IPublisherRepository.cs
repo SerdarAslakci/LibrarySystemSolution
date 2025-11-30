@@ -1,4 +1,5 @@
-﻿using LibrarySystem.Models.Models;
+﻿using LibrarySystem.API.Dtos.PublisherDtos;
+using LibrarySystem.Models.Models;
 using System.Linq.Expressions;
 
 namespace LibrarySystem.API.RepositoryInterfaces
@@ -10,6 +11,7 @@ namespace LibrarySystem.API.RepositoryInterfaces
         Task<Publisher?> GetByIdAsync(int id);
         Task<IEnumerable<Publisher>> GetByNameAsync(string name);
         Task<IEnumerable<Publisher>> GetAllAsync();
+        Task<PaginatedPublisherResult<Publisher>> GetAllPublisherPageableAsync(int page, int pageSize);
         Task<bool> DeletePublisherByIdAsync(int id);
     }
 }

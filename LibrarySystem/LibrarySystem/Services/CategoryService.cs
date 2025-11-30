@@ -138,5 +138,16 @@ namespace LibrarySystem.API.Services
 
             return true;
         }
+
+        public async Task<PaginatedCategoryResult<CategoryResultDto>> GetAllCategoriesPageableAsync(int page, int pageSize)
+        {
+            _logger.LogInformation("Sayfalı kategori listesi getiriliyor. Sayfa: {Page}, Sayfa Boyutu: {PageSize}", page, pageSize);
+
+            var categories = await _categoryRepository.GetAllCategoriesPageableAsync(page, pageSize);
+
+            _logger.LogInformation("{Count} kategori başarıyla getirildi. Sayfa: {Page}", categories.Items.Count, page);
+
+            return categories;
+        }
     }
 }

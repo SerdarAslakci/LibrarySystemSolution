@@ -1,10 +1,12 @@
-﻿using LibrarySystem.Models.Models;
+﻿using LibrarySystem.API.Dtos.PublisherDtos;
+using LibrarySystem.Models.Models;
 
 namespace LibrarySystem.API.ServiceInterfaces
 {
     public interface IPublisherService
     {
         Task<Publisher> AddPublisherAsync(Publisher publisher);
+        Task<PaginatedPublisherResult<Publisher>> GetAllPublisherPageableAsync(int page, int pageSize);
         Task<bool> IsExistsAsync(string? name);
         Task<IEnumerable<Publisher>> GetAllAsync();
         Task<Publisher?> GetByIdAsync(int id);

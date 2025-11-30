@@ -1,4 +1,5 @@
 ﻿using LibrarySystem.API.DataContext;
+using LibrarySystem.API.Dtos.PublisherDtos;
 using LibrarySystem.API.RepositoryInterfaces;
 using LibrarySystem.Models.Models;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +51,26 @@ namespace LibrarySystem.API.Repositories
                 .ToListAsync();
         }
 
+        public async Task<PaginatedPublisherResult<Publisher>> GetAllPublisherPageableAsync(int page, int pageSize)
+        {
+            var totalCount = await _context.Publishers.CountAsync();
+
+            int skipCount = (page - 1) * pageSize;
+
+            var items = await _context.Publishers
+                .OrderBy(p => p.Name) 
+                .Skip(skipCount)      
+                .Take(pageSize)       
+                .ToListAsync();
+
+            return new PaginatedPublisherResult<Publisher>(
+                items,
+                totalCount,
+                page,
+                pageSize
+            );
+        }
+
         public async Task<Publisher?> GetByIdAsync(int id)
         {
             return await _context.Publishers.FindAsync(id);
@@ -73,6 +94,7 @@ namespace LibrarySystem.API.Repositories
                             ELSE 3                                -- Sadece ses benzerliği olanlar en altta
                         END
                 ")
+                .Take(10)
                 .ToListAsync();
         }
     }

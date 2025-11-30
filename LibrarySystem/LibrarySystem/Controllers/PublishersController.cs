@@ -1,4 +1,5 @@
-﻿using LibrarySystem.API.ServiceInterfaces;
+﻿using LibrarySystem.API.Dtos.PublisherDtos;
+using LibrarySystem.API.ServiceInterfaces;
 using LibrarySystem.Models.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -69,6 +70,45 @@ namespace LibrarySystem.API.Controllers
                 return NotFound(ex.Message);
             }
 
+        }
+
+        [HttpGet("pageable")]
+        public async Task<IActionResult> GetAllPageable([FromQuery] PublisherPageableDto pageableDto)
+        {
+
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Controller: Geçersiz yayınevi sayfalama parametreleri alındı.");
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                _logger.LogInformation(
+                    "Controller: Sayfalandırılmış yayınevi isteği alındı. Sayfa: {Page}, Sayfa Boyutu: {PageSize}",
+                    pageableDto.page,
+                    pageableDto.pageSize
+                );
+
+                var pageablePublishersResult = await _publisherService.GetAllPublisherPageableAsync(
+                    pageableDto.page,
+                    pageableDto.pageSize
+                );
+
+                _logger.LogInformation(
+                    "Controller: Yayınevi listeleme tamamlandı. Toplam Yayınevi: {TotalCount}, Toplam Sayfa: {TotalPages}",
+                    pageablePublishersResult.TotalCount,
+                    pageablePublishersResult.TotalPages
+                );
+
+                return Ok(pageablePublishersResult);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Controller: Yayınevlerini getirirken beklenmedik bir hata oluştu.");
+
+                return StatusCode(500, "Sunucu tarafında bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.");
+            }
         }
 
         [Authorize(Roles = "Admin")]

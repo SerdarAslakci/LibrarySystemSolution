@@ -1,4 +1,5 @@
 ﻿using LibrarySystem.API.DataContext;
+using LibrarySystem.API.Dtos.BookDtos;
 using LibrarySystem.API.Dtos.CategoryDtos;
 using LibrarySystem.API.RepositoryInterfaces;
 using LibrarySystem.Models.Models;
@@ -33,26 +34,27 @@ namespace LibrarySystem.API.Repositories
             return await _context.Categories.FindAsync(id);
         }
 
- public async Task<IEnumerable<Category>> GetByNameAsync(string name)
-{
-    var searchPattern = $"%{name}%";
+        public async Task<IEnumerable<Category>> GetByNameAsync(string name)
+         {
+            var searchPattern = $"%{name}%";
 
-    return await _context.Categories
-        .FromSqlInterpolated($@"
-                SELECT * FROM Categories 
-                WHERE 
-                    DIFFERENCE(Name, {name}) >= 3 
-                    OR SOUNDEX(Name) = SOUNDEX({name}) 
-                    OR Name LIKE {searchPattern}
-                ORDER BY 
-                    CASE 
-                        WHEN Name = {name} THEN 1             -- Tam eşleşme en üstte
-                        WHEN Name LIKE {searchPattern} THEN 2 -- İçinde geçenler ikinci sırada
-                        ELSE 3                                -- Sadece ses benzerliği olanlar en altta
-                    END
-            ")
-        .ToListAsync();
-}
+            return await _context.Categories
+                .FromSqlInterpolated($@"
+                        SELECT * FROM Categories 
+                        WHERE 
+                            DIFFERENCE(Name, {name}) >= 3 
+                            OR SOUNDEX(Name) = SOUNDEX({name}) 
+                            OR Name LIKE {searchPattern}
+                        ORDER BY 
+                            CASE 
+                                WHEN Name = {name} THEN 1             -- Tam eşleşme en üstte
+                                WHEN Name LIKE {searchPattern} THEN 2 -- İçinde geçenler ikinci sırada
+                                ELSE 3                                -- Sadece ses benzerliği olanlar en altta
+                            END
+                    ")
+                .Take(10)
+                .ToListAsync();
+        }
 
         public async Task<IEnumerable<CategoryResultDto>> GetAllCategoriesAsync()
         {
@@ -80,6 +82,32 @@ namespace LibrarySystem.API.Repositories
             await _context.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task<PaginatedCategoryResult<CategoryResultDto>> GetAllCategoriesPageableAsync(int page, int pageSize)
+        {
+            var totalCount = await _context.Categories.CountAsync();
+
+            int skipCount = (page - 1) * pageSize;
+
+            var items = await _context.Categories
+                .OrderBy(c => c.Name) 
+                .Skip(skipCount)      
+                .Take(pageSize)
+                .Select(c => new CategoryResultDto
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    BookCount = _context.Books.Count(b => b.CategoryId == c.Id)
+                })
+                .ToListAsync();
+
+            return new PaginatedCategoryResult<CategoryResultDto>(
+                items,
+                totalCount,
+                page,
+                pageSize
+            );
         }
     }
 }

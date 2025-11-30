@@ -1,4 +1,5 @@
-﻿using LibrarySystem.API.RepositoryInterfaces;
+﻿using LibrarySystem.API.Dtos.PublisherDtos;
+using LibrarySystem.API.RepositoryInterfaces;
 using LibrarySystem.API.ServiceInterfaces;
 using LibrarySystem.Models.Models;
 using Microsoft.Extensions.Logging;
@@ -127,6 +128,21 @@ namespace LibrarySystem.API.Services
             _logger.LogInformation("Yayınevi başarıyla silindi. ID: {PublisherId}", id);
 
             return true;
+        }
+
+        public async Task<PaginatedPublisherResult<Publisher>> GetAllPublisherPageableAsync(int page, int pageSize)
+        {
+            _logger.LogInformation("Sayfalı yayınevi listeleme isteği alındı. Sayfa: {Page}, Sayfa Boyutu: {PageSize}", page, pageSize);
+
+            var publishersResult = await _publisherRepository.GetAllPublisherPageableAsync(page, pageSize);
+
+            _logger.LogInformation(
+                "Sayfalı yayınevi listeleme tamamlandı. Toplam Yayınevi: {TotalCount}, Toplam Sayfa: {TotalPages}",
+                publishersResult.TotalCount,
+                publishersResult.TotalPages
+            );
+
+            return publishersResult;
         }
     }
 

@@ -145,5 +145,14 @@ namespace LibrarySystem.API.Services
 
             return authors;
         }
+
+        public async Task<PaginatedAuthorResult<Author>> GetAllAuthorsPageableAsync(int page, int pageSize)
+        {
+            _logger.LogInformation("Sayfalı yazar listeleme işlemi başlatıldı. Sayfa: {Page}, Sayfa Boyutu: {PageSize}", page, pageSize);
+            var authors = await _authorRepository.GetAllAuthorsPageableAsync(page, pageSize);
+
+            _logger.LogInformation("Sayfalı yazar listeleme işlemi tamamlandı. Toplam Yazar: {TotalCount}, Toplam Sayfa: {TotalPages}", authors.TotalCount, authors.TotalPages);
+            return authors;
+        }
     }
 }

@@ -1,4 +1,5 @@
-﻿using LibrarySystem.API.Dtos.CategoryDtos;
+﻿using LibrarySystem.API.Dtos.BookDtos;
+using LibrarySystem.API.Dtos.CategoryDtos;
 using LibrarySystem.Models.Models;
 
 namespace LibrarySystem.API.RepositoryInterfaces
@@ -6,6 +7,7 @@ namespace LibrarySystem.API.RepositoryInterfaces
     public interface ICategoryRepository
     {
         Task<IEnumerable<CategoryResultDto>> GetAllCategoriesAsync();
+        Task<PaginatedCategoryResult<CategoryResultDto>> GetAllCategoriesPageableAsync(int page, int pageSize);
         Task<bool> IsExistsAsync(string? name);
         Task<Category> AddCategoryAsync(Category category);
         Task<Category?> GetByIdAsync(int id);

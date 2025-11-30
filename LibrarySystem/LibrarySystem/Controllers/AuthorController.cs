@@ -141,5 +141,39 @@ namespace LibrarySystem.API.Controllers
                 return StatusCode(500, "Sunucu hatası.");
             }
         }
+
+        [HttpGet("pageable")]
+        public async Task<IActionResult> GetAllPageable([FromQuery] AuthorPageableDto pageableDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Geçersiz sayfalama parametreleri alındı.");
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                _logger.LogInformation(
+                    "Controller: Sayfalandırılmış yazar isteği alındı. Sayfa: {Page}, Sayfa Boyutu: {PageSize}",
+                    pageableDto.page,
+                    pageableDto.pageSize
+                );
+
+                var pageableAuthorsResult = await _authorService.GetAllAuthorsPageableAsync(pageableDto.page,pageableDto.pageSize);
+
+                _logger.LogInformation(
+                    "Controller: Sayfalandırılmış yazar listeleme başarıyla tamamlandı. Toplam: {TotalCount}",
+                    pageableAuthorsResult.TotalCount
+                );
+
+                return Ok(pageableAuthorsResult);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Controller: Sayfalandırılmış yazarları getirirken beklenmedik bir hata oluştu.");
+
+                return StatusCode(500, "Sunucu tarafında bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.");
+            }
+        }
     }
 }

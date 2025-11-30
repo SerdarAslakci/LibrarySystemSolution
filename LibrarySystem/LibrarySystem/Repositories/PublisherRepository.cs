@@ -55,22 +55,25 @@ namespace LibrarySystem.API.Repositories
             return await _context.Publishers.FindAsync(id);
         }
 
-        public async Task<Publisher?> GetByNameAsync(string name)
+        public async Task<IEnumerable<Publisher>> GetByNameAsync(string name)
         {
-
             var searchPattern = $"%{name}%";
 
-            var result = await _context.Publishers
-                 .FromSql($@"
+            return await _context.Publishers
+                .FromSqlInterpolated($@"
                     SELECT * FROM Publishers 
                     WHERE 
-                        DIFFERENCE(Name, {name}) >= 3  -- Yazım hatası olsa bile harf benzerliği yüksek olanları bulur.
-                        OR SOUNDEX(Name) = SOUNDEX({name})  -- Yazılışı farklı ama okunuşu/tınısı aynı olanları eşleştirir.
-                        OR Name LIKE {searchPattern} -- Aranan kelimenin ismin herhangi bir yerinde geçip geçmediğine bakar.
+                        DIFFERENCE(Name, {name}) >= 3 
+                        OR SOUNDEX(Name) = SOUNDEX({name}) 
+                        OR Name LIKE {searchPattern}
+                    ORDER BY 
+                        CASE 
+                            WHEN Name = {name} THEN 1             -- Tam eşleşme en üstte
+                            WHEN Name LIKE {searchPattern} THEN 2 -- İçinde geçenler ikinci sırada
+                            ELSE 3                                -- Sadece ses benzerliği olanlar en altta
+                        END
                 ")
-                    .FirstOrDefaultAsync();
-
-            return result;
+                .ToListAsync();
         }
     }
 }

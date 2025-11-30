@@ -102,6 +102,35 @@ namespace LibrarySystem.API.Controllers
             }
         }
 
+        [HttpGet("by-name")]
+        public async Task<IActionResult> GetByName([FromQuery] string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                _logger.LogWarning("Kategori arama başarısız: 'name' parametresi boş gönderildi.");
+                return BadRequest(new { message = "Aranacak kategori adı boş olamaz." });
+            }
+
+            try
+            {
+                _logger.LogInformation("Controller: Kategori ismiyle arama isteği alındı. Aranan: {SearchTerm}", name);
+
+                var categories = await _categoryService.GetByNameAsync(name);
+
+                if (!categories.Any())
+                {
+                    _logger.LogInformation("Aranan isimde kategori bulunamadı: {SearchTerm}", name);
+                }
+                
+                return Ok(categories);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Kategori aranırken sunucu hatası oluştu. Aranan: {SearchTerm}", name);
+                return StatusCode(500, "Sunucu hatası.");
+            }
+        }
+
         [Authorize(Roles = "Admin")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCategory(int id)

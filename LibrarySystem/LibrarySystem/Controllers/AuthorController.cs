@@ -56,6 +56,31 @@ namespace LibrarySystem.API.Controllers
             }
         }
 
+
+        [HttpGet("by-name")]
+        public async Task<IActionResult> GetAuthorsByName([FromQuery] string? firstName, [FromQuery] string? lastName)
+        {
+            if (string.IsNullOrWhiteSpace(firstName) && string.IsNullOrWhiteSpace(lastName))
+            {
+                _logger.LogWarning("Yazar arama başarısız: Hem Ad hem Soyad boş geçilmiş.");
+                return BadRequest(new { message = "Arama yapmak için en az bir isim veya soyisim girmelisiniz." });
+            }
+
+            try
+            {
+                _logger.LogInformation("Controller: Yazar arama isteği alındı. Ad: {FirstName}, Soyad: {LastName}", firstName, lastName);
+                var authors = await _authorService.GetAuthorsByNameAsync(firstName, lastName);
+
+                return Ok(authors);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Yazar aranırken beklenmedik bir sunucu hatası oluştu. Ad: {FirstName}, Soyad: {LastName}", firstName, lastName);
+                return StatusCode(500, "Sunucu hatası.");
+            }
+        }
+
+
         [Authorize(Roles = "Admin")]
         [HttpPost]
         public async Task<IActionResult> CreateAuthor([FromBody] CreateAuthorDto authorDto)

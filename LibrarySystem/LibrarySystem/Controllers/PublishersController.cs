@@ -63,11 +63,12 @@ namespace LibrarySystem.API.Controllers
 
                 return Ok(publisher);
             }
-            catch (KeyNotFoundException ex)
+            catch (Exception ex)
             {
-                _logger.LogWarning("'{Name}' adlı yayınevi bulunamadı.", name);
+                _logger.LogWarning("Beklenmedik bir hata oluştu",ex.Message);
                 return NotFound(ex.Message);
             }
+
         }
 
         [Authorize(Roles = "Admin")]

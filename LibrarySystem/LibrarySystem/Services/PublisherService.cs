@@ -59,16 +59,12 @@ namespace LibrarySystem.API.Services
             }
             return publisher;
         }
-        public async Task<Publisher> GetByNameAsync(string name)
+        public async Task<IEnumerable<Publisher>> GetByNameAsync(string name)
         {
-            var publisher = await _publisherRepository.GetByNameAsync(name);
+            _logger.LogInformation("'{Name}' adlı yayınevi için sorgulama isteği alındı.", name);
+            var publishers = await _publisherRepository.GetByNameAsync(name);
 
-            if (publisher == null)
-            {
-                _logger.LogWarning("Yayınevi sorgulama başarısız: '{Name}' bulunamadı.", name);
-                throw new KeyNotFoundException($"Adı '{name}' olan yayınevi bulunamadı.");
-            }
-            return publisher;
+            return publishers;
         }
 
         public async Task<Publisher> GetOrCreateAsync(int? id, string? name)
@@ -86,7 +82,8 @@ namespace LibrarySystem.API.Services
 
             try
             {
-                return await GetByNameAsync(name);
+                var publisher = await _publisherRepository.GetByNameAsync(name);
+                return publisher.First();
             }
             catch (KeyNotFoundException)
             {

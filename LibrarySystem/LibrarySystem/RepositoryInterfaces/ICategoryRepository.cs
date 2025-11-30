@@ -9,7 +9,7 @@ namespace LibrarySystem.API.RepositoryInterfaces
         Task<bool> IsExistsAsync(string? name);
         Task<Category> AddCategoryAsync(Category category);
         Task<Category?> GetByIdAsync(int id);
-        Task<Category?> GetByNameAsync(string name);
+        Task<IEnumerable<Category>> GetByNameAsync(string name);
         Task<bool> DeleteCategoryByIdAsync(int id);
     }
 }

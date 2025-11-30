@@ -33,13 +33,26 @@ namespace LibrarySystem.API.Repositories
             return await _context.Categories.FindAsync(id);
         }
 
-        public async Task<Category?> GetByNameAsync(string name)
-        {
-            return await _context.Categories
-                .FirstOrDefaultAsync(c =>
-                    c.Name != null &&
-                    c.Name.ToLower() == name.ToLower());
-        }
+ public async Task<IEnumerable<Category>> GetByNameAsync(string name)
+{
+    var searchPattern = $"%{name}%";
+
+    return await _context.Categories
+        .FromSqlInterpolated($@"
+                SELECT * FROM Categories 
+                WHERE 
+                    DIFFERENCE(Name, {name}) >= 3 
+                    OR SOUNDEX(Name) = SOUNDEX({name}) 
+                    OR Name LIKE {searchPattern}
+                ORDER BY 
+                    CASE 
+                        WHEN Name = {name} THEN 1             -- Tam eşleşme en üstte
+                        WHEN Name LIKE {searchPattern} THEN 2 -- İçinde geçenler ikinci sırada
+                        ELSE 3                                -- Sadece ses benzerliği olanlar en altta
+                    END
+            ")
+        .ToListAsync();
+}
 
         public async Task<IEnumerable<CategoryResultDto>> GetAllCategoriesAsync()
         {

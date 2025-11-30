@@ -8,9 +8,10 @@ namespace LibrarySystem.API.ServiceInterfaces
         Task<Author> AddAuthorAsync(CreateAuthorDto authorDto);
         Task<bool> IsExistsAsync(string? firstName, string? lastName);
         Task<IEnumerable<Author>> GetAllAuthorsAsync();
+        Task<IEnumerable<Author>> GetAuthorsByNameAsync(string firstName, string lastName);
         Task<Author?> GetByIdAsync(int id);
         Task<Author?> GetByNameAsync(string firstName, string lastName);
-        Task<Author> GetOrCreateAsync(int? id, string? firstName, string? lastName);
+        Task<Author?> GetOrCreateAsync(int? id, string? firstName, string? lastName);
         Task<bool> DeleteAuthorByIdAsync(int id);
 
     }

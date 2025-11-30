@@ -130,7 +130,6 @@ namespace LibrarySystem.API.Repositories
                             ELSE 2
                         END
                 ")
-                .Take(10)
                 .ToListAsync();
         }
         public async Task<PaginatedAuthorResult<Author>> GetAllAuthorsPageableAsync(int page, int pageSize)

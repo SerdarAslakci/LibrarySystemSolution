@@ -52,7 +52,6 @@ namespace LibrarySystem.API.Repositories
                                 ELSE 3                                -- Sadece ses benzerliği olanlar en altta
                             END
                     ")
-                .Take(10)
                 .ToListAsync();
         }
 

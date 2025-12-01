@@ -37,6 +37,12 @@ namespace LibrarySystem.API.DataContext
                 .HasOne(l => l.AppUser)
                 .WithMany()
                 .HasForeignKey(l => l.UserId);
+
+            builder.Entity<Fine>()
+                .HasOne(f => f.Loan)
+                .WithMany()
+                .HasForeignKey(f => f.LoanId)
+                .IsRequired(false);
         }
 
 

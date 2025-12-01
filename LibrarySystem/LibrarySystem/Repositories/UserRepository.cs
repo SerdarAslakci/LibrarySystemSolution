@@ -59,6 +59,8 @@ namespace LibrarySystem.API.Repositories
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     Email = user.Email,
+                    DateOfBirth = user.DateOfBirth,
+                    PhoneNumber = user.PhoneNumber,
                     Roles = (from ur in _context.UserRoles
                              join r in _context.Roles on ur.RoleId equals r.Id
                              where ur.UserId == user.Id
@@ -81,6 +83,8 @@ namespace LibrarySystem.API.Repositories
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     Email = user.Email,
+                    DateOfBirth = user.DateOfBirth,
+                    PhoneNumber = user.PhoneNumber,
                     Roles = (from ur in _context.UserRoles
                              join r in _context.Roles on ur.RoleId equals r.Id
                              where ur.UserId == user.Id
@@ -102,6 +106,8 @@ namespace LibrarySystem.API.Repositories
                     FirstName = user.FirstName,
                     LastName = user.LastName,
                     Email = user.Email,
+                    DateOfBirth = user.DateOfBirth,
+                    PhoneNumber = user.PhoneNumber,
                     Roles = (from ur in _context.UserRoles
                              join r in _context.Roles on ur.RoleId equals r.Id
                              where ur.UserId == user.Id

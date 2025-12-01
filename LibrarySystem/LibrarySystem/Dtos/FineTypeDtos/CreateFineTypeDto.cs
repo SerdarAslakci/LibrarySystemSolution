@@ -9,7 +9,7 @@ namespace LibrarySystem.API.Dtos.FineTypeDtos
         public string Name { get; set; }
 
         [Required(ErrorMessage = "Günlük ücret alanı zorunludur.")]
-        [Range(0.01, 1000, ErrorMessage = "Günlük ücret 0.01 ile 1000 arasında olmalıdır.")]
+        [Range(0, 10000, ErrorMessage = "Günlük ücret 0 ile 10000 arasında olmalıdır.")]
         public decimal DailyRate { get; set; }
     }
 }

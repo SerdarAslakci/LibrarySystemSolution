@@ -82,7 +82,8 @@ namespace LibrarySystem.API.Repositories
                 Amount = overdueDays * fineType.DailyRate,
                 Status = "Unpaid",
                 IsActive = true,
-                IssuedDate = DateTime.Now
+                IssuedDate = DateTime.Now,
+                Description = $"{overdueDays} gün gecikme nedeniyle ceza."
             };
 
             await _context.Fines.AddAsync(fine);

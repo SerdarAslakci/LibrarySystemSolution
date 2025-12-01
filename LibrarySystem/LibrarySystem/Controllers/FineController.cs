@@ -19,6 +19,30 @@ namespace LibrarySystem.API.Controllers
             _logger = logger;
         }
 
+        [HttpPost("issue")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> IssueFine([FromBody] CreateFineDto fineDto)
+        {
+            try
+            {
+                var createdFine = await _fineService.AddFineAsync(fineDto);
+
+                return Ok(createdFine);
+            }
+            catch (ArgumentNullException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "Bir sunucu hatası oluştu.", detail = ex.Message });
+            }
+        }
+
         [Authorize(Roles = "Admin")]
         [HttpGet("by-email")]
         public async Task<IActionResult> GetUserFinesByEmail([FromQuery] string email)

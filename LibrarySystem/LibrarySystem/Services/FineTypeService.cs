@@ -37,7 +37,7 @@ namespace LibrarySystem.API.Services
                 throw new ArgumentException("Ceza tipi adı boş olamaz.", nameof(fineType));
             }
 
-            if (fineType.DailyRate <= 0)
+            if (fineType.DailyRate < 0)
             {
                 _logger.LogWarning("Ceza tipi ekleme başarısız: Geçersiz tutar ({DailyRate}).", fineType.DailyRate);
                 throw new ArgumentException("Günlük ceza tutarı 0 veya negatif olamaz.", nameof(fineType));

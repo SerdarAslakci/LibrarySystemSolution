@@ -13,6 +13,15 @@ namespace LibrarySystem.API.Repositories
             _context = context;
         }
 
+        public async Task<Fine> AddFineAsync(Fine fine)
+        {
+            var entity = await _context.Fines.AddAsync(fine);
+
+            await _context.SaveChangesAsync();
+
+            return entity.Entity;
+        }
+
         public async Task<IEnumerable<Fine>> GetUserFinesWithLoanAsync(string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))

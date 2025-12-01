@@ -7,13 +7,10 @@
         public string Status { get; set; }
         public bool IsActive { get; set; }
         public DateTime IssuedDate { get; set; }
-        public DateTime LoanDate { get; set; }
-        public DateTime ExpectedReturnDate { get; set; }
-        public DateTime? ActualReturnDate { get; set; }
-
-        public string BookTitle { get; set; }
-        public string BarcodeNumber { get; set; }
-
         public string FineType { get; set; }
+
+        // --- Ödünç Bilgileri (İç İçe Nesne) ---
+        // Eğer ceza manuel ise burası NULL olacak.
+        public LoanInfo? LoanDetails { get; set; }
     }
 }

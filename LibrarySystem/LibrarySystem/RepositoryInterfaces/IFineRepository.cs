@@ -7,5 +7,6 @@ namespace LibrarySystem.API.RepositoryInterfaces
         Task<Fine?> ProcessLateReturnAsync(Loan loan);
         Task<IEnumerable<Fine>> GetUserFinesWithLoanAsync(string userId);
         Task<Fine?> PayFineByIdAscyn(int id);
+        Task<Fine> AddFineAsync(Fine fine);
     }
 }

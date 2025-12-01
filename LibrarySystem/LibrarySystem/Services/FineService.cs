@@ -22,6 +22,34 @@ namespace LibrarySystem.API.Services
             _logger = logger;
         }
 
+        public async Task<Fine> AddFineAsync(CreateFineDto fineDto)
+        {
+            if (fineDto == null)
+            {
+                _logger.LogWarning("Ceza oluşturma işlemi başarısız: Gönderilen veri boş.");
+                throw new ArgumentNullException(nameof(fineDto), "Ceza verisi boş olamaz.");
+            }
+
+            _logger.LogInformation("Ceza oluşturma süreci başladı. UserId: {UserId}, Tutar: {Amount}", fineDto.userId, fineDto.amount);
+
+            var fine = new Fine
+            {
+                UserId = fineDto.userId,
+                FineTypeId = fineDto.fineTypeId,
+                Amount = fineDto.amount,
+                Description = fineDto.reason,
+                IssuedDate = DateTime.Now,
+                Status = "Unpaid",
+                IsActive = true
+            };
+
+            await _fineRepository.AddFineAsync(fine);
+
+            _logger.LogInformation("Ceza başarıyla veritabanına kaydedildi. Yeni FineId: {Id}", fine.Id);
+
+            return fine;
+        }
+
         public async Task<IEnumerable<UserFineDto>> GetUserFinesByEmailAsync(string email)
         {
             var user = await _userService.GetUserDetailByEmailAsync(email);

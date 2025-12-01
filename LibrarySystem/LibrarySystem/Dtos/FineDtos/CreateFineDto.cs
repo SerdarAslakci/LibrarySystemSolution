@@ -13,6 +13,6 @@ public class CreateFineDto
     public string reason { get; set; }
 
     [Required(ErrorMessage = "Ceza miktarı zorunludur.")]
-    [Range(1, 1_000_000, ErrorMessage = "Ceza miktarı 1 ile 1.000.000 arasında olmalıdır.")]
+    [Range(0, 1_000_000, ErrorMessage = "Ceza miktarı 1 ile 1.000.000 arasında olmalıdır.")]
     public int amount { get; set; }
 }

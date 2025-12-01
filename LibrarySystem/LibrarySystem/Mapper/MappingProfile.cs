@@ -49,14 +49,14 @@ namespace LibrarySystem.API.Mapper
                 .ForMember(dest => dest.Shelf,
                            opt => opt.MapFrom(src => src.BookCopy.Shelf.ShelfCode));
 
+            CreateMap<Loan, LoanInfo>()
+                .ForMember(dest => dest.BookTitle, opt => opt.MapFrom(src => src.BookCopy.Book.Title))
+                .ForMember(dest => dest.BarcodeNumber, opt => opt.MapFrom(src => src.BookCopy.BarcodeNumber));
+
             CreateMap<Fine, UserFineDto>()
                 .ForMember(dest => dest.FineId, opt => opt.MapFrom(src => src.Id))
-                .ForMember(dest => dest.LoanDate, opt => opt.MapFrom(src => src.Loan.LoanDate))
-                .ForMember(dest => dest.ExpectedReturnDate, opt => opt.MapFrom(src => src.Loan.ExpectedReturnDate))
-                .ForMember(dest => dest.ActualReturnDate, opt => opt.MapFrom(src => src.Loan.ActualReturnDate))
-                .ForMember(dest => dest.BookTitle, opt => opt.MapFrom(src => src.Loan.BookCopy.Book.Title))
-                .ForMember(dest => dest.BarcodeNumber, opt => opt.MapFrom(src => src.Loan.BookCopy.BarcodeNumber))
-                .ForMember(dest => dest.FineType, opt => opt.MapFrom(src => src.FineType.Name));
+                .ForMember(dest => dest.FineType, opt => opt.MapFrom(src => src.FineType.Name))
+                .ForMember(dest => dest.LoanDetails, opt => opt.MapFrom(src => src.Loan));
 
             CreateMap<FineType, ReturnFineTypeDto>().ReverseMap();
         }

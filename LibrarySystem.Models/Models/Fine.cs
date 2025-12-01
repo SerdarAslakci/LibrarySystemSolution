@@ -10,13 +10,14 @@ namespace LibrarySystem.Models.Models
     {
         public int Id { get; set; }
         public string UserId { get; set; }
-        public int LoanId { get; set; }
+        public int? LoanId { get; set; }
         public int FineTypeId { get; set; }
         public decimal Amount { get; set; }
+        public string Description { get; set; }
         public string Status { get; set; }
         public bool IsActive { get; set; }
         public DateTime IssuedDate { get; set; }
-        public Loan Loan { get; set; }
+        public Loan? Loan { get; set; }
         public FineType FineType { get; set; }
     }
 }

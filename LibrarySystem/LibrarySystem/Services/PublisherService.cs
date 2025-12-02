@@ -88,14 +88,23 @@ namespace LibrarySystem.API.Services
 
             try
             {
-                var publisher = await _publisherRepository.GetByNameAsync(name);
-                return publisher.First();
+                var publishers = await _publisherRepository.GetByNameAsync(name);
+                var existingPublisher = publishers.FirstOrDefault();
+
+                if (existingPublisher != null)
+                {
+                    return existingPublisher;
+                }
             }
-            catch (KeyNotFoundException)
+            catch (Exception ex)
             {
-                _logger.LogInformation("GetOrCreate: '{Name}' bulunamadı, yeni kayıt oluşturuluyor.", name);
-                return await AddPublisherAsync(new CreatePublisherDto { Name = name });
+                _logger.LogError(ex, "GetByNameAsync çağrılırken beklenmeyen bir hata oluştu.");
+                throw;
             }
+
+            _logger.LogInformation("GetOrCreate: '{Name}' bulunamadı, yeni kayıt oluşturuluyor.", name);
+
+            return await AddPublisherAsync(new CreatePublisherDto { Name = name });
         }
 
         public async Task<IEnumerable<Publisher>> GetAllAsync()

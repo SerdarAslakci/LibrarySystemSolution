@@ -7,6 +7,7 @@ using LibrarySystem.API.Repositories;
 using LibrarySystem.API.RepositoryInterfaces;
 using LibrarySystem.API.ServiceInterfaces;
 using LibrarySystem.Models.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace LibrarySystem.API.Services
@@ -415,5 +416,38 @@ namespace LibrarySystem.API.Services
 
             return books;
         }
+
+        public async Task<PaginatedBookCopyResult<BookCopy>> GetAllBookCopiesByIdAsync(BookCopyFilterDto bookCopyFilterDto)
+        {
+            _logger.LogInformation(
+                "Kitap kopyaları getiriliyor. BookId: {BookId}, Page: {Page}, PageSize: {PageSize}",
+                bookCopyFilterDto.BookId,
+                bookCopyFilterDto.page,
+                bookCopyFilterDto.pageSize
+            );
+
+            var items = await _bookRepository.GetAllBookCopiesAsync(
+                bookCopyFilterDto.BookId,
+                bookCopyFilterDto.page,
+                bookCopyFilterDto.pageSize
+            );
+
+            var totalCount = items.Count();
+
+            _logger.LogInformation(
+                "Kitap kopyaları başarıyla getirildi. Toplam: {TotalCount}, Getirilen: {FetchedCount}",
+                totalCount,
+                items.Count()
+            );
+
+            return new PaginatedBookCopyResult<BookCopy>(
+                items.ToList(),
+                totalCount,
+                bookCopyFilterDto.page,
+                bookCopyFilterDto.pageSize
+            );
+        }
+
+
     }
 }

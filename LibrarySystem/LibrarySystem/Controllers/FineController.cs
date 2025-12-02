@@ -62,22 +62,22 @@ namespace LibrarySystem.API.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        [HttpPost("pay/{fineId}")]
-        public async Task<IActionResult> PayFine(int fineId)
+        [HttpPost("revoke/{fineId}")]
+        public async Task<IActionResult> RevokeFine(int fineId)
         {
-            _logger.LogInformation("Ceza ödeme işlemi başlatıldı. FineId: {FineId}", fineId);
+            _logger.LogInformation("Ceza kaldırma işlemi başlatıldı. FineId: {FineId}", fineId);
 
             try
             {
-                var fine = await _fineService.PayFineAsync(fineId);
+                var fine = await _fineService.RevokeFineAsync(fineId);
 
-                _logger.LogInformation("Ceza ödeme işlemi başarılı. FineId: {FineId}", fineId);
+                _logger.LogInformation("Ceza kaldırma işlemi başarılı. FineId: {FineId}", fineId);
 
                 return Ok(fine);
             }
             catch (KeyNotFoundException ex)
             {
-                _logger.LogWarning("Ceza ödeme başarısız: Ceza bulunamadı. FineId: {FineId}", fineId);
+                _logger.LogWarning("Ceza kaldırma başarısız: Ceza bulunamadı. FineId: {FineId}", fineId);
                 return NotFound(new { message = ex.Message });
             }
         }

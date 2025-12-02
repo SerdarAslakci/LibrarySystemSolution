@@ -22,7 +22,7 @@ namespace LibrarySystem.API.Services
             _logger = logger;
         }
 
-        public async Task<Fine> AddFineAsync(CreateFineDto fineDto)
+        public async Task<UserFineDto> AddFineAsync(CreateFineDto fineDto)
         {
             if (fineDto == null)
             {
@@ -43,11 +43,11 @@ namespace LibrarySystem.API.Services
                 IsActive = true
             };
 
-            await _fineRepository.AddFineAsync(fine);
+            var added = await _fineRepository.AddFineAsync(fine);
 
             _logger.LogInformation("Ceza başarıyla veritabanına kaydedildi. Yeni FineId: {Id}", fine.Id);
 
-            return fine;
+            return _mapper.Map<UserFineDto>(added);
         }
 
         public async Task<IEnumerable<UserFineDto>> GetUserFinesByEmailAsync(string email)
@@ -64,21 +64,21 @@ namespace LibrarySystem.API.Services
             return _mapper.Map<IEnumerable<UserFineDto>>(fines);
         }
 
-        public async Task<UserFineDto?> PayFineAsync(int fineId)
+        public async Task<UserFineDto?> RevokeFineAsync(int fineId)
         {
-            _logger.LogInformation("Ceza ödeme işlemi başlatıldı. FineId: {FineId}", fineId);
+            _logger.LogInformation("Ceza kaldırma işlemi başlatıldı. FineId: {FineId}", fineId);
 
-            var fine = await _fineRepository.PayFineByIdAscyn(fineId);
+            var fine = await _fineRepository.RevokeFineByIdAscyn(fineId);
 
             if (fine == null)
             {
-                _logger.LogWarning("Ceza ödeme başarısız: Ceza bulunamadı. FineId: {FineId}", fineId);
+                _logger.LogWarning("Ceza kaldırma başarısız: Ceza bulunamadı. FineId: {FineId}", fineId);
                 throw new KeyNotFoundException("Ceza bulunamadı.");
             }
 
             var userFineDto = _mapper.Map<UserFineDto>(fine);
 
-            _logger.LogInformation("Ceza başarıyla ödendi. FineId: {FineId}", fineId);
+            _logger.LogInformation("Ceza başarıyla kaldırıldı. FineId: {FineId}", fineId);
 
             return userFineDto;
         }

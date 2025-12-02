@@ -37,7 +37,7 @@ namespace LibrarySystem.API.Repositories
                 .ToListAsync();
         }
 
-        public async Task<Fine?> PayFineByIdAscyn(int id)
+        public async Task<Fine?> RevokeFineByIdAscyn(int id)
         {
             var fine = await _context.Fines
                 .Include(f => f.Loan)

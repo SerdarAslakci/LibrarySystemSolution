@@ -10,6 +10,7 @@ namespace LibrarySystem.API.ServiceInterfaces
         Task<LoanHistoryDto> UpdateLoanAsync(UpdateLoanDto loan);
         Task<LoanHistoryDto?> GetLoanByIdAsync(int id);
         Task<ReturnSummaryDto?> ReturnBookAsync(string barcode);
+        Task<PaginatedLoanDto<LoanWithUserDetailsDto>> GetAllLoansWithUserDetailAsync(LoanPageableRequestDto loanPageableRequestDto);
         Task<IEnumerable<LoanHistoryDto>?> GetAllLoansByUserAsync(string userId);
     }
 }

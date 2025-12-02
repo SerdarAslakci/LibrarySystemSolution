@@ -161,6 +161,9 @@ namespace LibrarySystem.API.Services
 
         public async Task<IEnumerable<LoanHistoryDto?>> GetAllLoansByUserAsync(string userId)
         {
+
+            _logger.LogInformation("Kullanıcı ödünç geçmişi sorgulanıyor. UserId: {UserId}", userId);
+
             if (string.IsNullOrWhiteSpace(userId))
             {
                 throw new ArgumentException("Kullanıcı kimliği (userId) boş veya geçersiz olamaz.", nameof(userId));
@@ -168,9 +171,40 @@ namespace LibrarySystem.API.Services
 
             var loans = await _loanRepository.GetAllLoansByUserAsync(userId);
 
+            _logger.LogInformation("Kullanıcı ödünç geçmişi alındı. UserId: {UserId}, Kayıt Sayısı: {LoanCount}", userId, loans.Count());
+
             var dtos = _mapper.Map<IEnumerable<LoanHistoryDto?>>(loans);
 
             return dtos;
+        }
+
+        public async Task<PaginatedLoanDto<LoanWithUserDetailsDto>> GetAllLoansWithUserDetailAsync(LoanPageableRequestDto loanPageableRequestDto)
+        {
+            int page = loanPageableRequestDto.page;
+            int pageSize = loanPageableRequestDto.pageSize;
+
+            var loans = await _loanRepository.GetAllLoansWithUserDetail(page, pageSize);
+
+            if (loans == null || !loans.Any())
+            {
+                _logger.LogWarning("Sayfalı Loan listesi boş veya null geldi. Page: {Page}, PageSize: {PageSize}", page, pageSize);
+            }
+
+            _logger.LogInformation("Sayfalı Loan listesi başarıyla çekildi. Page: {Page}, PageSize: {PageSize}, Count: {Count}",
+                page, pageSize, loans.Count());
+
+            var loanDtos = _mapper.Map<List<LoanWithUserDetailsDto>>(loans);
+
+            _logger.LogInformation("Loan listesi DTO'ya başarıyla dönüştürüldü. Count: {Count}", loanDtos.Count);
+
+            int totalCount = loanDtos.Count;
+
+            return new PaginatedLoanDto<LoanWithUserDetailsDto>(
+                loanDtos,
+                totalCount,
+                page,
+                pageSize
+            );
         }
     }
 }

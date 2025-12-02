@@ -206,5 +206,51 @@ namespace LibrarySystem.API.Services
                 pageSize
             );
         }
+
+        public async Task<PaginatedLoanDto<LoanWithUserDetailsDto>> GetAllOverdueLoansWithUserDetailAsync(LoanPageableRequestDto request)
+        {
+
+            _logger.LogInformation("Gecikmiş Loanlar sorgulanıyor. Page: {Page}, PageSize: {PageSize}", request.page, request.pageSize);
+
+            int page = request.page;
+            int pageSize = request.pageSize;
+
+            var loans = await _loanRepository.GetAllOverdueLoansWithUserDetailAsync(page, pageSize);
+
+            _logger.LogInformation("Gecikmiş Loanlar getirildi. Page: {Page}, Size: {PageSize}, Count: {Count}",
+                page, pageSize, loans.Count());
+
+            var dtoList = _mapper.Map<List<LoanWithUserDetailsDto>>(loans);
+
+            return new PaginatedLoanDto<LoanWithUserDetailsDto>(
+                dtoList,
+                dtoList.Count,
+                page,
+                pageSize
+            );
+        }
+
+        public async Task<PaginatedLoanDto<LoanWithUserDetailsDto>> GetAllReturnedLoansWithUserDetailAsync(LoanPageableRequestDto request)
+        {
+            _logger.LogInformation("Tüm iade edilen Loan geçmişi sorgulanıyor. Page: {Page}, PageSize: {PageSize}", request.page, request.pageSize);
+
+            int page = request.page;
+            int pageSize = request.pageSize;
+
+            var loans = await _loanRepository.GetAllReturnedLoansWithUserDetailAsync(page, pageSize);
+
+            _logger.LogInformation("Returned loan getirildi. Page: {Page}, Size: {PageSize}, Count: {Count}",
+                page, pageSize, loans.Count());
+
+            var dtoList = _mapper.Map<List<LoanWithUserDetailsDto>>(loans);
+
+            return new PaginatedLoanDto<LoanWithUserDetailsDto>(
+                dtoList,
+                dtoList.Count,
+                page,
+                pageSize
+            );
+        }
+
     }
 }

@@ -135,5 +135,44 @@ namespace LibrarySystem.API.Repositories
 
             return loans;
         }
+
+        public async Task<IEnumerable<Loan>> GetAllOverdueLoansWithUserDetailAsync(int page, int pageSize)
+        {
+            var today = DateTime.UtcNow;
+
+            return await _context.Loans
+                .Include(l => l.AppUser)
+                .Include(l => l.BookCopy)
+                    .ThenInclude(bc => bc.Book)
+                        .ThenInclude(b => b.BookAuthors)
+                            .ThenInclude(ba => ba.Author)
+                .Include(l => l.BookCopy.Shelf)
+                    .ThenInclude(s => s.Room)
+                .Where(l =>
+                    (l.ActualReturnDate == null && l.ExpectedReturnDate < today) ||
+                    (l.ActualReturnDate != null && l.ActualReturnDate > l.ExpectedReturnDate)
+                )
+                .OrderBy(l => l.ExpectedReturnDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Loan>> GetAllReturnedLoansWithUserDetailAsync(int page, int pageSize)
+        {
+            return await _context.Loans
+                .Include(l => l.AppUser)
+                .Include(l => l.BookCopy)
+                    .ThenInclude(bc => bc.Book)
+                        .ThenInclude(b => b.BookAuthors)
+                            .ThenInclude(ba => ba.Author)
+                .Include(l => l.BookCopy.Shelf)
+                    .ThenInclude(s => s.Room)
+                .Where(l => l.ActualReturnDate != null)
+                .OrderByDescending(l => l.ActualReturnDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
     }
 }

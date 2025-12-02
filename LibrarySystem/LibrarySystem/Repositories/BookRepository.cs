@@ -1,4 +1,5 @@
 ﻿using LibrarySystem.API.DataContext;
+using LibrarySystem.API.Dtos.BookCopyDtos;
 using LibrarySystem.API.Dtos.BookDtos;
 using LibrarySystem.API.RepositoryInterfaces;
 using LibrarySystem.Models.Models;
@@ -306,6 +307,17 @@ namespace LibrarySystem.API.Repositories
             await _context.SaveChangesAsync();
 
             return existingCopy;
+        }
+
+        public async Task<IEnumerable<BookCopy>> GetAllBookCopiesAsync(int bookId, int page, int pageSize)
+        {
+            return await _context.BookCopies
+                .Include(bc => bc.Shelf)
+                    .ThenInclude(s => s.Room)
+                .Where(bc => bc.BookId == bookId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
         }
     }
 }

@@ -238,6 +238,29 @@ namespace LibrarySystem.API.Controllers
             }
         }
 
+        [HttpGet("all-book-copies")]
+        public async Task<IActionResult> GetBookCopies([FromQuery] BookCopyFilterDto filter)
+        {
+            _logger.LogInformation(
+                "Kitap kopyaları için istek alındı. BookId: {BookId}, Page: {Page}, PageSize: {PageSize}",
+                filter.BookId, filter.page, filter.pageSize
+            );
+
+            if (filter.page <= 0 || filter.pageSize <= 0)
+            {
+                _logger.LogWarning(
+                    "Geçersiz pagination parametreleri. Page: {Page}, PageSize: {PageSize}",
+                    filter.page, filter.pageSize
+                );
+                return BadRequest("Page ve PageSize sıfırdan büyük olmalıdır.");
+            }
+
+            var result = await _bookService.GetAllBookCopiesByIdAsync(filter);
+
+            return Ok(result);
+        }
+
+
         [HttpGet]
         [Route("get-book-details/{id}")]
         public async Task<IActionResult> GetBookWithDetails(int id)

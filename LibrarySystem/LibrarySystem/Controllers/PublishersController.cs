@@ -139,7 +139,7 @@ namespace LibrarySystem.API.Controllers
             catch (InvalidOperationException ex)
             {
                 _logger.LogWarning(ex, "Yayınevi ekleme başarısız: Yayınevi zaten mevcut.");
-                return Conflict(new { message = ex.Message });
+                return BadRequest("Bu yayınevi zaten mevcut");
             }
             catch (Exception ex)
             {

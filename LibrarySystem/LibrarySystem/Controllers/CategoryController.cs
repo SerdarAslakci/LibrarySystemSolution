@@ -51,7 +51,7 @@ namespace LibrarySystem.API.Controllers
             catch (InvalidOperationException ex)
             {
                 _logger.LogWarning("Kategori ekleme başarısız: Zaten mevcut. İsim: {Name}", category.Name);
-                return Conflict(ex.Message);
+                return BadRequest("Bu kategori zaten mevcut.");
             }
             catch (Exception ex)
             {

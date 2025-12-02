@@ -22,8 +22,10 @@ namespace LibrarySystem.API.ServiceInterfaces
 
         // BookCopy Operations
         Task<BookCopy?> GetBookCopyByBarcodeAsync(string barcode);
+        Task<PaginatedBookCopyResult<BookCopy>> GetAllBookCopiesByIdAsync(BookCopyFilterDto bookCopyFilterDto);
 
-       
+
+
         Task<BookCopy> AddBookCopyAsync(CreateBookCopyDto createBookCopyDto);
         Task<BookCopy> UpdateBookCopyAsync(int id, UpdateBookCopyDto updateBookCopyDto);
         Task<bool> SetBookCopyUnAvailableAsync(int bookCopyId);

@@ -1,4 +1,5 @@
-﻿using LibrarySystem.API.Dtos.BookDtos;
+﻿using LibrarySystem.API.Dtos.BookCopyDtos;
+using LibrarySystem.API.Dtos.BookDtos;
 using LibrarySystem.Models.Models;
 using System.Diagnostics.Metrics;
 
@@ -10,6 +11,7 @@ namespace LibrarySystem.API.RepositoryInterfaces
         Task<Book?> GetBookByIdAsync(int id);
         Task<Book?> GetBookWithDetailsAsync(int id);
         Task<BookCopy?> GetBookCopyByIdAsync(int id);
+        Task<IEnumerable<BookCopy>> GetAllBookCopiesAsync(int bookId, int page, int pageSize);
         Task<BookCopy?> GetBookCopyByBarcodeAsync(string barcode);
         Task<IEnumerable<Book>?> GetBooksByNameWithDetailsAsync(string name);
         Task<IEnumerable<Book>> GetOtherBooksByAuthorAsync(int authorId, int size, int? categoryId = null);

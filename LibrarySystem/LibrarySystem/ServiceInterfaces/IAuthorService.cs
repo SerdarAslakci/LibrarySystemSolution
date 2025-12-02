@@ -13,7 +13,7 @@ namespace LibrarySystem.API.ServiceInterfaces
         Task<IEnumerable<Author>> GetAuthorsByNameAsync(string firstName, string lastName);
         Task<Author?> GetByIdAsync(int id);
         Task<Author?> GetByNameAsync(string firstName, string lastName);
-        Task<Author?> GetOrCreateAsync(int? id, string? firstName, string? lastName);
+        Task<Author> GetOrCreateAsync(int? id, string? firstName, string? lastName);
         Task<bool> DeleteAuthorByIdAsync(int id);
 
     }

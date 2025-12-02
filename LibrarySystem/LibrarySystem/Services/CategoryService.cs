@@ -70,7 +70,7 @@ namespace LibrarySystem.API.Services
             return categorys;
         }
 
-        public async Task<Category?> GetOrCreateAsync(int? id, string? name)
+        public async Task<Category> GetOrCreateAsync(int? id, string? name)
         {
             if (id.HasValue)
             {
@@ -85,13 +85,22 @@ namespace LibrarySystem.API.Services
 
             try
             {
-                return (await GetByNameAsync(name)).First();
+                var existingCategory = (await GetByNameAsync(name)).FirstOrDefault();
+
+                if (existingCategory != null)
+                {
+                    return existingCategory;
+                }
             }
-            catch (KeyNotFoundException)
+            catch (Exception ex)
             {
-                _logger.LogInformation("GetOrCreate: '{Name}' bulunamadı, yeni oluşturuluyor.", name);
-                return await AddCategoryAsync(new Category { Name = name });
+                _logger.LogError(ex, "GetByNameAsync çağrılırken beklenmeyen bir hata oluştu.");
+                throw;
             }
+
+            _logger.LogInformation("GetOrCreate: '{Name}' bulunamadı, yeni oluşturuluyor.", name);
+
+            return await AddCategoryAsync(new Category { Name = name });
         }
 
         public async Task<IEnumerable<CategoryResultDto>> GetAllCategoriesAsync()

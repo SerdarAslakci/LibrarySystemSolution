@@ -81,7 +81,7 @@ namespace LibrarySystem.API.Services
             return author;
         }
 
-        public async Task<Author?> GetOrCreateAsync(int? id, string? firstName, string? lastName)
+        public async Task<Author> GetOrCreateAsync(int? id, string? firstName, string? lastName)
         {
             if (id.HasValue)
             {
@@ -96,18 +96,27 @@ namespace LibrarySystem.API.Services
 
             try
             {
-                return (await GetAuthorsByNameAsync(firstName, lastName)).First();
-            }
-            catch (KeyNotFoundException)
-            {
-                _logger.LogInformation("GetOrCreate: '{FirstName} {LastName}' bulunamadı, otomatik olarak yeni kayıt oluşturuluyor.", firstName, lastName);
+                var existingAuthor = (await GetAuthorsByNameAsync(firstName, lastName)).FirstOrDefault();
 
-                return await AddAuthorAsync(new CreateAuthorDto
+                if (existingAuthor != null)
                 {
-                    FirstName = firstName,
-                    LastName = lastName
-                });
+                    return existingAuthor;
+                }
+
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetAuthorsByNameAsync çağrılırken beklenmeyen bir hata oluştu.");
+                throw;
+            }
+
+            _logger.LogInformation("GetOrCreate: '{FirstName} {LastName}' bulunamadı, otomatik olarak yeni kayıt oluşturuluyor.", firstName, lastName);
+
+            return await AddAuthorAsync(new CreateAuthorDto
+            {
+                FirstName = firstName,
+                LastName = lastName
+            });
         }
         public async Task<IEnumerable<Author>> GetAllAuthorsAsync()
         {

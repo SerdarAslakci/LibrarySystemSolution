@@ -9,7 +9,13 @@ namespace LibrarySystem.API.RepositoryInterfaces
         Task<Loan> AddLoanAsync(Loan loan);
         Task<Loan?> UpdateLoanAsync(Loan loan);
         Task<Loan?> GetLoanByIdAsync(int id);
+
+        //For admin panel
         Task<IEnumerable<Loan>> GetAllLoansWithUserDetail(int page, int pageSize);
+        Task<IEnumerable<Loan>> GetAllOverdueLoansWithUserDetailAsync(int page, int pageSize);
+        Task<IEnumerable<Loan>> GetAllReturnedLoansWithUserDetailAsync(int page, int pageSize);
+
+
         Task<IEnumerable<Loan?>> GetAllLoansByUserAsync(string userId);
         Task<bool> IsBookCopyOnLoanAsync(int bookCopyId);
         Task<bool> CanUserBarrowAsync(string userId);

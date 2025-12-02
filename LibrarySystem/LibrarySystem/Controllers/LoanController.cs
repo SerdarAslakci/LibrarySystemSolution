@@ -116,8 +116,11 @@ namespace LibrarySystem.API.Controllers
 
         [HttpGet("get-all-loans")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAllLoansForAdmin([FromQuery] LoanPageableRequestDto requestDto)
+        public async Task<IActionResult> GetAllLoansForAdminPanel([FromQuery] LoanPageableRequestDto requestDto)
         {
+            _logger.LogInformation("Admin için tüm ödünçler sorgusu: Page {Page}, PageSize {PageSize}",
+                requestDto.page, requestDto.pageSize);
+
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Admin için tüm ödünçler sorgusu: Geçersiz istek parametreleri.");
@@ -176,7 +179,10 @@ namespace LibrarySystem.API.Controllers
             _logger.LogInformation("Ödünç güncelleme/uzatma isteği. LoanID: {LoanId}, Yeni Tarih: {NewDate}", dto?.LoanId, dto?.NewExpectedReturnDate);
 
             if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Ödünç güncelleme isteği: Validasyon hatası.");
                 return BadRequest(ModelState);
+            }
 
             try
             {
@@ -217,8 +223,12 @@ namespace LibrarySystem.API.Controllers
         [HttpPost("return-book")]
         public async Task<ActionResult<Loan>> ReturnBook([FromBody] ReturnBookDto returnBookDto)
         {
+
             if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Kitap iade isteği: Validasyon hatası.");
                 return BadRequest(ModelState);
+            }
 
             if (string.IsNullOrEmpty(returnBookDto.Barcode))
                 return BadRequest("Barkod numarası gereklidir.");
@@ -226,8 +236,6 @@ namespace LibrarySystem.API.Controllers
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized("Kullanıcı bilgisi bulunamadı.");
-
-            _logger.LogInformation("Kitap iade isteği alındı. UserID: {UserId}, Barkod: {Barcode}", userId, returnBookDto.Barcode);
 
             try
             {
@@ -254,5 +262,94 @@ namespace LibrarySystem.API.Controllers
             }
 
         }
+
+
+        [HttpGet("overdue")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetOverdueLoansForAdminPanel([FromQuery] LoanPageableRequestDto request)
+        {
+            _logger.LogInformation("Gecikmiş ödünç kayıtları sorgusu: Sayfa {Page}, Boyut {PageSize}", request.page, request.pageSize);
+
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Gecikmiş ödünç kayıtları sorgusu: Geçersiz istek parametreleri.");
+                return BadRequest(ModelState);
+            }
+
+
+            try
+            {
+                var result = await _loanService.GetAllOverdueLoansWithUserDetailAsync(request);
+
+                if (!result.Items.Any())
+                {
+                    _logger.LogInformation(
+                        "Gecikmiş ödünç kaydı bulunamadı. Sayfa: {Page}, Boyut: {PageSize}",
+                        request.page, request.pageSize
+                    );
+                }
+
+                _logger.LogInformation(
+                    "Gecikmiş ödünç kayıtları getirildi. Kayıt Sayısı: {Count}, Sayfa: {Page}, Boyut: {PageSize}",
+                    result.Items.Count, request.page, request.pageSize
+                );
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Gecikmiş ödünç kayıtları getirilirken hata oluştu. Sayfa: {Page}, Boyut: {PageSize}",
+                    request.page, request.pageSize
+                );
+
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Gecikmiş ödünçler alınırken bir hata oluştu.");
+            }
+        }
+
+        [HttpGet("returned")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetReturnedLoansForAdminPanel([FromQuery] LoanPageableRequestDto request)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Teslim edilmiş ödünç kayıtları sorgusu: Geçersiz istek parametreleri.");
+                return BadRequest(ModelState);
+            }
+
+            _logger.LogInformation("Teslim edilmiş ödünç kayıtları sorgusu: Sayfa {Page}, Boyut {PageSize}", request.page, request.pageSize);
+
+            try
+            {
+                var result = await _loanService.GetAllReturnedLoansWithUserDetailAsync(request);
+
+                if (!result.Items.Any())
+                {
+                    _logger.LogInformation(
+                        "Teslim edilmiş ödünç kaydı bulunamadı. Sayfa: {Page}, Boyut: {PageSize}",
+                        request.page, request.pageSize
+                    );
+                }
+
+                _logger.LogInformation(
+                    "Teslim edilmiş ödünç kayıtları getirildi. Kayıt Sayısı: {Count}, Sayfa: {Page}, Boyut: {PageSize}",
+                    result.Items.Count, request.page, request.pageSize
+                );
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Teslim edilmiş ödünç kayıtları getirilirken hata oluştu. Sayfa: {Page}, Boyut: {PageSize}",
+                    request.page, request.pageSize
+                );
+
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Ödünç geçmişi alınırken bir hata oluştu.");
+            }
+        }
+
     }
 }

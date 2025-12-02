@@ -10,6 +10,7 @@ namespace LibrarySystem.API.Dtos.UserDtos
         public bool IsActive { get; set; }
         public DateTime IssuedDate { get; set; }
         public string FineType { get; set; }
+        public string Description { get; set; }
 
         public LoanInfo? LoanDetails { get; set; }
     }

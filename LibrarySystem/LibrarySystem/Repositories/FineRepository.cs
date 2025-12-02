@@ -32,7 +32,7 @@ namespace LibrarySystem.API.Repositories
                     .ThenInclude(l => l.BookCopy)
                         .ThenInclude(bc => bc.Book)
                 .Include(f => f.FineType)
-                .Where(f => f.UserId == userId)
+                .Where(f => f.UserId == userId && f.IsActive == true)
                 .OrderByDescending(f => f.IssuedDate)
                 .ToListAsync();
         }

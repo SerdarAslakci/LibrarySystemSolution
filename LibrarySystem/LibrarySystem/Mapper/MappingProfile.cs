@@ -56,7 +56,9 @@ namespace LibrarySystem.API.Mapper
             CreateMap<Fine, UserFineDto>()
                 .ForMember(dest => dest.FineId, opt => opt.MapFrom(src => src.Id))
                 .ForMember(dest => dest.FineType, opt => opt.MapFrom(src => src.FineType.Name))
-                .ForMember(dest => dest.LoanDetails, opt => opt.MapFrom(src => src.Loan));
+                .ForMember(dest => dest.LoanDetails, opt => opt.MapFrom(src => src.Loan))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description));
+        
 
             CreateMap<FineType, ReturnFineTypeDto>().ReverseMap();
         }

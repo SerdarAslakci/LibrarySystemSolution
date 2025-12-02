@@ -3,6 +3,7 @@ using LibrarySystem.API.ServiceInterfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace LibrarySystem.API.Controllers
 {
@@ -80,6 +81,37 @@ namespace LibrarySystem.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Kullanıcı (Email) sorgulama hatası: {Email}", email);
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [Authorize]
+        [HttpGet("me")]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (userId == null)
+            {
+                _logger.LogWarning("Mevcut kullanıcı kimliği alınamadı.");
+                return Unauthorized(new { message = "Kullanıcı kimliği alınamadı." });
+            }
+
+            try
+            {
+                _logger.LogInformation("Mevcut kullanıcı detayı sorgulanıyor: {UserId}", userId);
+                var user = await _userService.GetUserDetailByIdAsync(userId);
+                if (user == null)
+                {
+                    _logger.LogWarning("Mevcut kullanıcı bulunamadı: ID '{UserId}'", userId);
+                    return NotFound(new { message = "Kullanıcı bulunamadı." });
+                }
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Mevcut kullanıcı sorgulama hatası: {UserId}", userId);
                 return StatusCode(500, new { message = ex.Message });
             }
         }

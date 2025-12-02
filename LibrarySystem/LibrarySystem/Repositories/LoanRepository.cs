@@ -1,4 +1,5 @@
 ﻿using LibrarySystem.API.DataContext;
+using LibrarySystem.API.Dtos.LoanDtos;
 using LibrarySystem.API.RepositoryInterfaces;
 using LibrarySystem.Models.Models;
 using Microsoft.AspNetCore.Identity;
@@ -115,6 +116,24 @@ namespace LibrarySystem.API.Repositories
         {
             return _context.Loans
                 .CountAsync(l => l.ExpectedReturnDate < DateTime.Now && l.ActualReturnDate == null);
+        }
+
+        public async Task<IEnumerable<Loan>> GetAllLoansWithUserDetail(int page, int pageSize)
+        {
+            var loans = await _context.Loans
+                .Include(l => l.AppUser)
+                .Include(l => l.BookCopy)
+                    .ThenInclude(bc => bc.Book)
+                        .ThenInclude(b => b.BookAuthors)
+                            .ThenInclude(ba => ba.Author)
+                .Include(l => l.BookCopy)
+                    .ThenInclude(bc => bc.Shelf)
+                        .ThenInclude(s => s.Room)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return loans;
         }
     }
 }

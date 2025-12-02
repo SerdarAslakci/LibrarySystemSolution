@@ -114,6 +114,36 @@ namespace LibrarySystem.API.Controllers
             }
         }
 
+        [HttpGet("get-all-loans")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllLoansForAdmin([FromQuery] LoanPageableRequestDto requestDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Admin için tüm ödünçler sorgusu: Geçersiz istek parametreleri.");
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var result = await _loanService.GetAllLoansWithUserDetailAsync(requestDto);
+
+                if (result.Items == null || !result.Items.Any())
+                {
+                    _logger.LogInformation("Admin için ödünç listesi boş döndü. Page: {Page}, PageSize: {PageSize}",
+                        requestDto.page, requestDto.pageSize);
+                }
+
+                _logger.LogInformation("Admin için ödünç listesi başarıyla döndü. Count: {Count}", result.Items.Count);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Admin için ödünç listesi alınırken bir hata oluştu.");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Ödünç listesi alınırken bir hata oluştu.");
+            }
+        }
+
 
         [HttpGet("{id}")]
         public async Task<ActionResult<Loan>> GetLoanById(int id)

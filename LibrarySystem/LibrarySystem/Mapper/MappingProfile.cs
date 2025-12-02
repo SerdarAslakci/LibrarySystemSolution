@@ -62,6 +62,42 @@ namespace LibrarySystem.API.Mapper
         
 
             CreateMap<FineType, ReturnFineTypeDto>().ReverseMap();
+
+
+            CreateMap<Loan, LoanWithUserDetailsDto>()
+                .ForMember(dest => dest.LoanId,
+                    opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.LoanDate,
+                    opt => opt.MapFrom(src => src.LoanDate))
+                .ForMember(dest => dest.ExpectedReturnDate,
+                    opt => opt.MapFrom(src => src.ExpectedReturnDate))
+                .ForMember(dest => dest.ActualReturnDate,
+                    opt => opt.MapFrom(src => src.ActualReturnDate))
+                .ForMember(dest => dest.IsActive, opt => opt.MapFrom(src => src.ActualReturnDate == null))
+                .ForMember(dest => dest.BookTitle,
+                    opt => opt.MapFrom(src => src.BookCopy.Book.Title))
+                .ForMember(dest => dest.Isbn,
+                    opt => opt.MapFrom(src => src.BookCopy.Book.ISBN))
+                .ForMember(dest => dest.AuthorName,
+                    opt => opt.MapFrom(src =>
+                        src.BookCopy.Book.BookAuthors
+                            .Select(ba => ba.Author.FirstName + " " + ba.Author.LastName)
+                            .Aggregate((current, next) => current + ", " + next)
+                    ))
+                .ForMember(dest => dest.Room,
+                    opt => opt.MapFrom(src => src.BookCopy.Shelf.Room.RoomCode))
+                .ForMember(dest => dest.Shelf,
+                    opt => opt.MapFrom(src => src.BookCopy.Shelf.ShelfCode))
+
+                .ForMember(dest => dest.UserId,
+                    opt => opt.MapFrom(src => src.AppUser.Id))
+                .ForMember(dest => dest.UserFullName,
+                    opt => opt.MapFrom(src => src.AppUser.FirstName + " " + src.AppUser.LastName))
+                .ForMember(dest => dest.UserEmail,
+                    opt => opt.MapFrom(src => src.AppUser.Email))
+                .ForMember(dest => dest.UserPhoneNumber,
+                    opt => opt.MapFrom(src => src.AppUser.PhoneNumber));
+
         }
     }
 }

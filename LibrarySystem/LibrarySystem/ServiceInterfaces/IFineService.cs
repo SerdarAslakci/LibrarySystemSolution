@@ -7,7 +7,7 @@ namespace LibrarySystem.API.ServiceInterfaces
     {
         Task<Fine?> ProcessLateReturnAsync(Loan loan);
         Task<IEnumerable<UserFineDto>> GetUserFinesByEmailAsync(string email);
-        Task<UserFineDto?> PayFineAsync(int fineId);
-        Task<Fine> AddFineAsync(CreateFineDto fineDto);
+        Task<UserFineDto?> RevokeFineAsync(int fineId);
+        Task<UserFineDto> AddFineAsync(CreateFineDto fineDto);
     }
 }

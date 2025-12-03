@@ -159,7 +159,7 @@ namespace LibrarySystem.API.Services
             return summaryDto;
         }
 
-        public async Task<IEnumerable<LoanHistoryDto?>> GetAllLoansByUserAsync(string userId)
+        public async Task<PaginatedLoanDto<LoanHistoryDto?>> GetAllActiveLoansByUserAsync(string userId, LoanPageableRequestDto loanPageableRequestDto)
         {
 
             _logger.LogInformation("Kullanıcı ödünç geçmişi sorgulanıyor. UserId: {UserId}", userId);
@@ -169,13 +169,42 @@ namespace LibrarySystem.API.Services
                 throw new ArgumentException("Kullanıcı kimliği (userId) boş veya geçersiz olamaz.", nameof(userId));
             }
 
-            var loans = await _loanRepository.GetAllLoansByUserAsync(userId);
+            var loans = await _loanRepository.GetAllActiveLoansByUserAsync(userId, loanPageableRequestDto.page, loanPageableRequestDto.pageSize);
 
             _logger.LogInformation("Kullanıcı ödünç geçmişi alındı. UserId: {UserId}, Kayıt Sayısı: {LoanCount}", userId, loans.Count());
 
-            var dtos = _mapper.Map<IEnumerable<LoanHistoryDto?>>(loans);
+            var dtos = _mapper.Map<List<LoanHistoryDto?>>(loans);
 
-            return dtos;
+            return new PaginatedLoanDto<LoanHistoryDto?>(
+                dtos,
+                dtos.Count(),
+                loanPageableRequestDto.page,
+                loanPageableRequestDto.pageSize
+            );
+        }
+
+        public async Task<PaginatedLoanDto<LoanHistoryDto?>> GetAllReturnedLoansByUserAsync(string userId, LoanPageableRequestDto loanPageableRequestDto)
+        {
+
+            _logger.LogInformation("Kullanıcı ödünç geçmişi sorgulanıyor. UserId: {UserId}", userId);
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                throw new ArgumentException("Kullanıcı kimliği (userId) boş veya geçersiz olamaz.", nameof(userId));
+            }
+
+            var loans = await _loanRepository.GetAllReturnedLoansByUserAsync(userId, loanPageableRequestDto.page, loanPageableRequestDto.pageSize);
+
+            _logger.LogInformation("Kullanıcı ödünç geçmişi alındı. UserId: {UserId}, Kayıt Sayısı: {LoanCount}", userId, loans.Count());
+
+            var dtos = _mapper.Map<List<LoanHistoryDto?>>(loans);
+
+            return new PaginatedLoanDto<LoanHistoryDto?>(
+                dtos,
+                dtos.Count(),
+                loanPageableRequestDto.page,
+                loanPageableRequestDto.pageSize
+            );
         }
 
         public async Task<PaginatedLoanDto<LoanWithUserDetailsDto>> GetAllLoansWithUserDetailAsync(LoanPageableRequestDto loanPageableRequestDto)

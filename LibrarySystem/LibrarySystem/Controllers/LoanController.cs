@@ -24,8 +24,8 @@ namespace LibrarySystem.API.Controllers
         }
 
         [Authorize]
-        [HttpGet("my-loans")]
-        public async Task<IActionResult> GetMyLoans()
+        [HttpGet("my-active-loans")]
+        public async Task<IActionResult> GetMyActiveLoans([FromQuery] LoanPageableRequestDto dto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
@@ -37,13 +37,43 @@ namespace LibrarySystem.API.Controllers
 
             try
             {
-                var loans = await _loanService.GetAllLoansByUserAsync(userId);
+                var loans = await _loanService.GetAllActiveLoansByUserAsync(userId,dto);
                 return Ok(loans);
             }
             catch (ArgumentException ex)
             {
                 _logger.LogWarning("Kullanıcı ödünçleri sorgusu hatası (Argüman): {Message}", ex.Message);
                 return BadRequest(ex.Message );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Kullanıcı ödünçleri alınırken sunucu hatası. UserID: {UserId}", userId);
+                return StatusCode(StatusCodes.Status500InternalServerError, "Ödünç kayıtları alınırken beklenmedik bir hata oluştu.");
+            }
+        }
+
+
+        [Authorize]
+        [HttpGet("my-returned-loans")]
+        public async Task<IActionResult> GetMyReturnedLoans([FromQuery] LoanPageableRequestDto dto)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogWarning("Kullanıcı geçmiş ödünçleri sorgusu: Kimlik doğrulama başarısız (Claim eksik).");
+                return Unauthorized("Kullanıcı kimliği doğrulanamadı.");
+            }
+
+            try
+            {
+                var loans = await _loanService.GetAllReturnedLoansByUserAsync(userId, dto);
+                return Ok(loans);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning("Kullanıcı ödünçleri sorgusu hatası (Argüman): {Message}", ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {

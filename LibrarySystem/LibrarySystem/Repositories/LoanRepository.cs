@@ -92,7 +92,7 @@ namespace LibrarySystem.API.Repositories
             return await GetLoanByIdAsync(loan.Id);
         }
 
-        public async Task<IEnumerable<Loan?>> GetAllLoansByUserAsync(string userId)
+        public async Task<IEnumerable<Loan?>> GetAllActiveLoansByUserAsync(string userId, int page, int pageSize)
         {
             var loans = await _context.Loans
                 .Include(l => l.BookCopy)
@@ -101,7 +101,24 @@ namespace LibrarySystem.API.Repositories
                             .ThenInclude(ba => ba.Author)
                 .Include(l => l.BookCopy.Shelf)
                     .ThenInclude(s => s.Room)
-                .Where(l => l.UserId == userId)
+                .Where(l => l.UserId == userId && l.ActualReturnDate == null)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return loans;
+        }
+
+        public async Task<IEnumerable<Loan?>> GetAllReturnedLoansByUserAsync(string userId, int page, int pageSize)
+        {
+            var loans = await _context.Loans
+                .Include(l => l.BookCopy)
+                    .ThenInclude(bc => bc.Book)
+                        .ThenInclude(b => b.BookAuthors)
+                            .ThenInclude(ba => ba.Author)
+                .Include(l => l.BookCopy.Shelf)
+                    .ThenInclude(s => s.Room)
+                .Where(l => l.UserId == userId && l.ActualReturnDate != null)
                 .ToListAsync();
 
             return loans;

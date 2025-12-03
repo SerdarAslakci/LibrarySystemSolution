@@ -115,5 +115,42 @@ namespace LibrarySystem.API.Controllers
                 return StatusCode(500, ex.Message);
             }
         }
+        [Authorize]
+        [HttpGet("stats")]
+        public async Task<IActionResult> GetUserStats()
+        {
+            _logger.LogInformation("Kullanıcı istatistikleri isteği alındı.");
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogWarning("Kimlik doğrulama başarısız: Yetkilendirme talebinde User ID ClaimType eksik veya boş.");
+                return Unauthorized("Kimlik doğrulama bilgisi eksik veya geçersiz.");
+            }
+
+            _logger.LogInformation("Kullanıcı istatistikleri sorgulanıyor. User ID: {UserId}", userId);
+
+            try
+            {
+                var userStats = await _userService.GetUserStatsAsync(userId);
+
+                _logger.LogInformation("Kullanıcı istatistikleri başarıyla alındı. User ID: {UserId}", userId);
+                return Ok(userStats);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Kullanıcı istatistikleri sorgulama başarısız. Kullanıcı bulunamadı. User ID: {UserId}", userId);
+
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Kullanıcı istatistikleri alınırken beklenmeyen bir sunucu hatası oluştu. User ID: {UserId}", userId);
+
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                                  $"İstatistikler alınırken beklenmeyen bir hata oluştu. Hata: {ex.Message}");
+            }
+        }
     }
 }

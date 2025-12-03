@@ -124,5 +124,20 @@ namespace LibrarySystem.API.Repositories
             var users = await _userManager.GetUsersInRoleAsync("User");
             return users.Count;
         }
+
+        public async Task<UserStatsDto> GetUserStatsAsync(string userId)
+        {
+            var totalActiveLoans = await _context.Loans.CountAsync(loan => loan.UserId == userId && loan.ActualReturnDate == null);
+            var totalCompletedLoans = await _context.Loans.CountAsync(loan => loan.UserId == userId && loan.ActualReturnDate != null);
+            var totalFines = await _context.Fines.Where(fine => fine.UserId == userId && fine.IsActive == true).SumAsync(fine => fine.Amount);
+
+
+            return new UserStatsDto
+            {
+                ActiveLoanCount = totalActiveLoans,
+                TotalReadCount = totalCompletedLoans,
+                TotalFineDebt = totalFines
+            };
+        }
     }
 }

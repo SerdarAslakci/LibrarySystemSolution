@@ -6,6 +6,7 @@ namespace LibrarySystem.API.RepositoryInterfaces
 {
     public interface IUserRepository
     {
+        Task<UserStatsDto> GetUserStatsAsync(string userId);
         Task<PaginatedResult<UserViewDto>> GetUsersWithFilterAsync(UserFilterDto filter);
         Task<UserViewDto?> GetUserByIdAsync(string userId);
         Task<UserViewDto?> GetUserByEmailAsync(string email);

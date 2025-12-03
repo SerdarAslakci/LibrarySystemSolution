@@ -50,5 +50,24 @@ namespace LibrarySystem.API.Services
 
             return user;
         }
+
+        public async Task<UserStatsDto> GetUserStatsAsync(string userId)
+        {
+            _logger.LogInformation("Kullanıcı istatistikleri sorgulanıyor. UserId: {UserId}", userId);
+
+            var user = await _userRepository.GetUserByIdAsync(userId);
+
+            if (user == null)
+            {
+                _logger.LogWarning("Kullanıcı istatistikleri sorgulama başarısız: ID '{UserId}' bulunamadı.", userId);
+                throw new KeyNotFoundException($"ID değeri '{userId}' olan kullanıcı bulunamadı.");
+            }
+
+            var stats = await _userRepository.GetUserStatsAsync(userId);
+
+            _logger.LogInformation("Kullanıcı istatistikleri başarıyla alındı. UserId: {UserId}", userId);
+
+            return stats;
+        }
     }
 }

@@ -20,6 +20,7 @@ namespace LibrarySystem.API.Controllers
             _logger = logger;
         }
 
+
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> GetUsers([FromQuery] UserFilterDto filter)

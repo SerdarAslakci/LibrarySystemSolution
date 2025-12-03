@@ -40,6 +40,13 @@ namespace LibrarySystem.API.Services
             if (string.IsNullOrWhiteSpace(userId))
                 throw new ArgumentException("UserId boş olamaz.", nameof(userId));
 
+
+            if(!await CanUserBorrowAsync(userId))
+            {                 
+                _logger.LogWarning("Ödünç alma başarısız: Kullanıcı ({UserId}) cezalıdır.", userId);
+                throw new InvalidOperationException("Kullanıcı cezalıdır. Ödünç alamaz.");
+            }
+
             var bookCopy = await _bookService.GetBookCopyByBarcodeAsync(dto.Barcode);
 
             if (bookCopy == null)

@@ -13,6 +13,7 @@ namespace LibrarySystem.API.ServiceInterfaces
         Task<PaginatedLoanDto<LoanWithUserDetailsDto>> GetAllLoansWithUserDetailAsync(LoanPageableRequestDto loanPageableRequestDto);
         Task<PaginatedLoanDto<LoanWithUserDetailsDto>> GetAllOverdueLoansWithUserDetailAsync(LoanPageableRequestDto loanPageableRequestDto);
         Task<PaginatedLoanDto<LoanWithUserDetailsDto>> GetAllReturnedLoansWithUserDetailAsync(LoanPageableRequestDto loanPageableRequestDto);
-        Task<IEnumerable<LoanHistoryDto>?> GetAllLoansByUserAsync(string userId);
+        Task<PaginatedLoanDto<LoanHistoryDto>?> GetAllActiveLoansByUserAsync(string userId,LoanPageableRequestDto loanPageableRequestDto);
+        Task<PaginatedLoanDto<LoanHistoryDto>?> GetAllReturnedLoansByUserAsync(string userId,LoanPageableRequestDto loanPageableRequestDto);
     }
 }

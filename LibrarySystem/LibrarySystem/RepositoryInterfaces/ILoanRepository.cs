@@ -16,7 +16,8 @@ namespace LibrarySystem.API.RepositoryInterfaces
         Task<IEnumerable<Loan>> GetAllReturnedLoansWithUserDetailAsync(int page, int pageSize);
 
 
-        Task<IEnumerable<Loan?>> GetAllLoansByUserAsync(string userId);
+        Task<IEnumerable<Loan?>> GetAllActiveLoansByUserAsync(string userId, int page, int pageSize);
+        Task<IEnumerable<Loan?>> GetAllReturnedLoansByUserAsync(string userId, int page, int pageSize);
         Task<bool> IsBookCopyOnLoanAsync(int bookCopyId);
         Task<bool> CanUserBarrowAsync(string userId);
         Task<Loan?> MarkAsReturnedByBarcodeAsync(string barcode);

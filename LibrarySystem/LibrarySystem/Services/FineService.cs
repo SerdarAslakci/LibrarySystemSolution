@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using LibrarySystem.API.Dtos.FineDtos;
 using LibrarySystem.API.Dtos.UserDtos;
 using LibrarySystem.API.RepositoryInterfaces;
 using LibrarySystem.API.ServiceInterfaces;
@@ -131,5 +132,65 @@ namespace LibrarySystem.API.Services
                 throw new Exception("Ceza işlemi sırasında beklenmeyen bir hata oluştu. Lütfen sistem yöneticisine başvurun.", ex);
             }
         }
+
+        public async Task<PaginatedFineResult<UserFineDto>> GetActiveFinesByUserIdAsync(string userId, FinePageableDto dto)
+        {
+            _logger.LogInformation(
+                "Aktif cezalar için sorgu başlatıldı. UserId: {UserId}, Page: {Page}, PageSize: {PageSize}",
+                userId, dto.page, dto.pageSize);
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                _logger.LogWarning("Aktif ceza sorgusu başarısız: UserId geçersiz.");
+                throw new ArgumentException("UserId geçersiz.");
+            }
+
+            var result = await _fineRepository.GetActiveFinesByUserIdAsync(userId, dto.page,dto.pageSize);
+
+            if (result == null)
+            {
+                _logger.LogWarning("Aktif cezalar bulunamadı veya repository null döndürdü. UserId: {UserId}", userId);
+                throw new KeyNotFoundException("Kullanıcıya ait aktif ceza bulunamadı.");
+            }
+
+            _logger.LogInformation(
+                "Aktif cezalar başarıyla getirildi. UserId: {UserId}, Toplam: {TotalCount}",
+                userId, result.Count());
+
+            var mapped = _mapper.Map<List<UserFineDto>>(result);
+
+            return new PaginatedFineResult<UserFineDto>(mapped, result.Count(), dto.page, dto.pageSize);
+        }
+
+
+        public async Task<PaginatedFineResult<UserFineDto>> GetInActiveFinesByUserIdAsync(string userId, FinePageableDto dto)
+        {
+            _logger.LogInformation(
+                "Pasif cezalar için sorgu başlatıldı. UserId: {UserId}, Page: {Page}, PageSize: {PageSize}",
+                userId, dto.page, dto.pageSize);
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                _logger.LogWarning("Pasif ceza sorgusu başarısız: UserId geçersiz.");
+                throw new ArgumentException("UserId geçersiz.");
+            }
+
+            var result = await _fineRepository.GetInActiveFinesByUserIdAsync(userId, dto.page,dto.pageSize);
+
+            if (result == null)
+            {
+                _logger.LogWarning("Pasif cezalar bulunamadı veya repository null döndürdü. UserId: {UserId}", userId);
+                throw new KeyNotFoundException("Kullanıcıya ait pasif ceza bulunamadı.");
+            }
+
+            _logger.LogInformation(
+                "Pasif cezalar başarıyla getirildi. UserId: {UserId}, Toplam: {TotalCount}",
+                userId, result.Count());
+
+            var mapped = _mapper.Map<List<UserFineDto>>(result);
+
+            return new PaginatedFineResult<UserFineDto>(mapped, result.Count(), dto.page, dto.pageSize);
+        }
+
     }
 }

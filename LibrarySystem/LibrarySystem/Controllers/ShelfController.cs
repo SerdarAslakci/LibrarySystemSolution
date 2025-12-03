@@ -33,7 +33,7 @@ namespace LibrarySystem.API.Controllers
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning("GET: Raf bulunamadı. ID: {ShelfId}. Hata: {Message}", id, ex.Message);
-                return NotFound(new { message = ex.Message });
+                return NotFound( ex.Message );
             }
         }
 
@@ -61,7 +61,7 @@ namespace LibrarySystem.API.Controllers
                 if (shelf == null)
                 {
                     _logger.LogWarning("GET: Kriterlere uygun raf bulunamadı. Kod: {Code}, Oda ID: {RoomId}", shelfCode, roomId);
-                    return NotFound(new { message = "Belirtilen kriterlere uygun raf bulunamadı." });
+                    return NotFound("Belirtilen kriterlere uygun raf bulunamadı.");
                 }
 
                 return Ok(shelf);
@@ -69,7 +69,7 @@ namespace LibrarySystem.API.Controllers
             catch (ArgumentException ex)
             {
                 _logger.LogWarning("GET: Geçersiz arama parametreleri. Hata: {Message}", ex.Message);
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ex.Message);
             }
         }
 
@@ -88,12 +88,12 @@ namespace LibrarySystem.API.Controllers
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning("POST: Raf oluşturulamadı (Bağlı kayıt yok). Hata: {Message}", ex.Message);
-                return NotFound(new { message = ex.Message });
+                return NotFound(ex.Message);
             }
             catch (InvalidOperationException ex)
             {
                 _logger.LogWarning("POST: Raf oluşturulamadı (Çakışma). Hata: {Message}", ex.Message);
-                return Conflict(new { message = ex.Message });
+                return Conflict(ex.Message);
             }
         }
 
@@ -112,12 +112,12 @@ namespace LibrarySystem.API.Controllers
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning("PUT: Güncellenecek raf bulunamadı. ID: {ShelfId}", id);
-                return NotFound(new { message = ex.Message });
+                return NotFound(ex.Message);
             }
             catch (InvalidOperationException ex)
             {
                 _logger.LogWarning("PUT: Raf güncelleme çakışması. ID: {ShelfId}. Hata: {Message}", id, ex.Message);
-                return Conflict(new { message = ex.Message });
+                return Conflict(ex.Message);
             }
         }
     }

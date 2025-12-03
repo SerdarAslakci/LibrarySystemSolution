@@ -1,11 +1,11 @@
 ﻿using LibrarySystem.API.Dtos.AuthDtos;
-using LibrarySystem.API.Dtos.ErrorDtos;
 using LibrarySystem.API.ServiceInterfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging; 
+using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
-
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -20,21 +20,6 @@ public class AuthController : ControllerBase
         _logger = logger;
     }
 
-    private ErrorDto CreateModelStateErrorResponse()
-    {
-        var errors = ModelState.Values
-            .SelectMany(v => v.Errors)
-            .Select(e => e.ErrorMessage)
-            .ToList();
-
-        return new ErrorDto
-        {
-            Status = "400 Bad Request",
-            Message = "Gönderilen verilerde format hatası var. Lütfen tüm alanları kontrol edin.",
-            Errors = errors
-        };
-    }
-
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
     {
@@ -43,7 +28,7 @@ public class AuthController : ControllerBase
         if (!ModelState.IsValid)
         {
             _logger.LogWarning("Kayıt olma isteği validasyona takıldı. Email: {Email}", registerDto?.Email);
-            return BadRequest(CreateModelStateErrorResponse());
+            return BadRequest("Kayıt bilgileri eksik veya hatalı formatta. Lütfen e-posta ve şifrenizi kontrol edin.");
         }
 
         try
@@ -56,20 +41,12 @@ public class AuthController : ControllerBase
         catch (InvalidOperationException ex)
         {
             _logger.LogWarning(ex, "Kayıt işlemi başarısız (İş kuralı hatası). Email: {Email}", registerDto?.Email);
-            return BadRequest(new ErrorDto
-            {
-                Status = "400 Bad Request",
-                Message = ex.Message
-            });
+            return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Kayıt işlemi sırasında beklenmeyen hata. Email: {Email}", registerDto?.Email);
-            return StatusCode(StatusCodes.Status500InternalServerError, new ErrorDto
-            {
-                Status = "500 Internal Server Error",
-                Message = "Beklenmeyen bir sunucu hatası oluştu. Lütfen daha sonra tekrar deneyin."
-            });
+            return StatusCode(StatusCodes.Status500InternalServerError, "Beklenmeyen bir sunucu hatası oluştu. Lütfen daha sonra tekrar deneyin.");
         }
     }
 
@@ -81,7 +58,7 @@ public class AuthController : ControllerBase
         if (!ModelState.IsValid)
         {
             _logger.LogWarning("Giriş isteği validasyona takıldı. Email: {Email}", loginDto?.Email);
-            return BadRequest(CreateModelStateErrorResponse());
+            return BadRequest("Giriş bilgileri eksik veya hatalı. Lütfen e-posta adresinizi ve şifrenizi kontrol edin.");
         }
 
         try
@@ -94,20 +71,12 @@ public class AuthController : ControllerBase
         catch (ArgumentException ex)
         {
             _logger.LogWarning("Giriş başarısız (Yetkisiz): {Message}. Email: {Email}", ex.Message, loginDto?.Email);
-            return Unauthorized(new ErrorDto
-            {
-                Status = "401 Unauthorized",
-                Message = ex.Message
-            });
+            return Unauthorized(ex.Message);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Giriş işlemi sırasında sunucu hatası. Email: {Email}", loginDto?.Email);
-            return StatusCode(StatusCodes.Status500InternalServerError, new ErrorDto
-            {
-                Status = "500 Internal Server Error",
-                Message = "Beklenmeyen bir sunucu hatası oluştu."
-            });
+            return StatusCode(StatusCodes.Status500InternalServerError, "Beklenmeyen bir sunucu hatası oluştu.");
         }
     }
 
@@ -119,7 +88,7 @@ public class AuthController : ControllerBase
         if (!ModelState.IsValid)
         {
             _logger.LogWarning("Token yenileme isteği validasyona takıldı.");
-            return BadRequest(CreateModelStateErrorResponse());
+            return BadRequest("Token yenileme işlemi için gerekli bilgiler eksik veya hatalı.");
         }
 
         try
@@ -132,20 +101,12 @@ public class AuthController : ControllerBase
         catch (ArgumentException ex)
         {
             _logger.LogWarning("Token yenileme başarısız (Yetkisiz): {Message}", ex.Message);
-            return Unauthorized(new ErrorDto
-            {
-                Status = "401 Unauthorized",
-                Message = ex.Message
-            });
+            return Unauthorized(ex.Message);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Token yenileme sırasında sunucu hatası.");
-            return StatusCode(StatusCodes.Status500InternalServerError, new ErrorDto
-            {
-                Status = "500 Internal Server Error",
-                Message = "Token yenilenirken beklenmeyen bir hata oluştu."
-            });
+            return StatusCode(StatusCodes.Status500InternalServerError, "Token yenilenirken beklenmeyen bir hata oluştu.");
         }
     }
 }

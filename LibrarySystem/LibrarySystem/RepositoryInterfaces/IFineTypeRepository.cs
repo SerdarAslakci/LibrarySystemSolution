@@ -8,5 +8,6 @@ namespace LibrarySystem.API.RepositoryInterfaces
         Task<FineType> UpdateFineTypeAsync(FineType fineType);
         Task<FineType?> GetByIdAsync(int id);
         Task<List<FineType>> GetAllFineTypesAsync();
+        Task<FineType?> GetByNameAsync(string name);
     }
 }

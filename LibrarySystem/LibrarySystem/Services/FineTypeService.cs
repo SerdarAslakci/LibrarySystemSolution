@@ -44,6 +44,15 @@ namespace LibrarySystem.API.Services
             }
 
 
+            var existingFineType = await _fineTypeRepository.GetByNameAsync(fineType.Name);
+
+            if (existingFineType != null)
+            {
+                _logger.LogWarning("Ceza tipi ekleme başarısız: İsim çakışması ({Name}).", fineType.Name);
+                throw new InvalidOperationException($"'{fineType.Name}' isimli ceza tipi zaten mevcut.");
+            }
+
+
             var entity = new FineType
             {
                 Name = fineType.Name,
@@ -67,6 +76,14 @@ namespace LibrarySystem.API.Services
             {
                 _logger.LogWarning("Ceza tipi güncelleme başarısız: ID {Id} bulunamadı.", fineType.Id);
                 throw new KeyNotFoundException($"Id'si {fineType.Id} olan ceza tipi bulunamadı.");
+            }
+
+            var nameConflict = await _fineTypeRepository.GetByNameAsync(fineType.Name);
+
+            if (nameConflict != null)
+            {
+                _logger.LogWarning("Ceza tipi güncelleme başarısız: İsim çakışması ({Name}).", fineType.Name);
+                throw new InvalidOperationException($"'{fineType.Name}' isimli ceza tipi zaten mevcut.");
             }
 
             existingFineType.Name = fineType.Name ?? existingFineType.Name;

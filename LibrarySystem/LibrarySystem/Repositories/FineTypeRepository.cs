@@ -37,5 +37,12 @@ namespace LibrarySystem.API.Repositories
         {
             return await _context.FineTypes.ToListAsync();
         }
+
+        public async Task<FineType?> GetByNameAsync(string name)
+        {
+            return await _context.FineTypes
+                    .FirstOrDefaultAsync(x => x.Name.ToLower() == name.ToLower());
+
+        }
     }
 }

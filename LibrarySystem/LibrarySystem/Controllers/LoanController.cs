@@ -43,7 +43,7 @@ namespace LibrarySystem.API.Controllers
             catch (ArgumentException ex)
             {
                 _logger.LogWarning("Kullanıcı ödünçleri sorgusu hatası (Argüman): {Message}", ex.Message);
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ex.Message );
             }
             catch (Exception ex)
             {
@@ -71,7 +71,7 @@ namespace LibrarySystem.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Uygunluk kontrolü sırasında sunucu hatası. UserID: {UserId}", userId);
-                return StatusCode(500, new { message = ex.Message });
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -110,7 +110,7 @@ namespace LibrarySystem.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Ödünç alma işlemi sırasında sunucu hatası.");
-                return StatusCode(500, new { message = ex.Message });
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -168,7 +168,7 @@ namespace LibrarySystem.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Ödünç detayı getirilirken hata oluştu. ID: {LoanId}", id);
-                return StatusCode(500, new { message = ex.Message });
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -200,21 +200,21 @@ namespace LibrarySystem.API.Controllers
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning("Ödünç güncelleme hatası (Bulunamadı): {Message}", ex.Message);
-                return NotFound(new { message = ex.Message });
+                return NotFound(ex.Message);
             }
             catch (InvalidOperationException ex)
             {
                 _logger.LogWarning("Ödünç güncelleme hatası (Geçersiz İşlem): {Message}", ex.Message);
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ex.Message);
             }
             catch (ArgumentNullException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Ödünç güncelleme sırasında sunucu hatası.");
-                return StatusCode(500, new { message = ex.Message });
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -248,12 +248,12 @@ namespace LibrarySystem.API.Controllers
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning("İade hatası (Bulunamadı): {Message}", ex.Message);
-                return NotFound(new { message = ex.Message });
+                return NotFound(ex.Message);
             }
             catch (InvalidOperationException ex)
             {
                 _logger.LogWarning("İade hatası (Geçersiz İşlem): {Message}", ex.Message);
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {

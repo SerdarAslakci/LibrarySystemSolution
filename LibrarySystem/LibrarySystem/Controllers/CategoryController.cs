@@ -109,7 +109,7 @@ namespace LibrarySystem.API.Controllers
             if (string.IsNullOrWhiteSpace(name))
             {
                 _logger.LogWarning("Kategori arama başarısız: 'name' parametresi boş gönderildi.");
-                return BadRequest(new { message = "Aranacak kategori adı boş olamaz." });
+                return BadRequest("Aranacak kategori adı boş olamaz.");
             }
 
             try
@@ -147,7 +147,7 @@ namespace LibrarySystem.API.Controllers
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning(ex, "Silinmek istenen kategori bulunamadı. ID: {Id}", id);
-                return NotFound(new { message = ex.Message });
+                return NotFound(ex.Message);
             }
             catch (Exception ex)
             {
@@ -216,17 +216,17 @@ namespace LibrarySystem.API.Controllers
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning("Güncellenmek istenen kategori bulunamadı. ID: {Id}", id);
-                return NotFound(new { message = ex.Message });
+                return NotFound(ex.Message);
             }
             catch (InvalidOperationException ex)
             {
                 _logger.LogWarning("Kategori güncellenemedi. ID: {Id}, Hata: {Error}", id, ex.Message);
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Kategori güncellenirken sunucu taraflı kritik bir hata oluştu. ID: {Id}", id);
-                return StatusCode(500, new { message = "İşlem sırasında sunucu kaynaklı bir hata oluştu. Lütfen daha sonra tekrar deneyiniz." });
+                return StatusCode(500, "İşlem sırasında sunucu kaynaklı bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.");
             }
         }
     }

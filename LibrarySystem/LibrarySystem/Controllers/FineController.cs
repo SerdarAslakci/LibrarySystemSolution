@@ -1,8 +1,10 @@
-﻿using LibrarySystem.API.ServiceInterfaces;
+﻿using LibrarySystem.API.Dtos.FineDtos;
+using LibrarySystem.API.ServiceInterfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using System.Security.Claims;
 
 namespace LibrarySystem.API.Controllers
 {
@@ -58,6 +60,83 @@ namespace LibrarySystem.API.Controllers
             {
                 _logger.LogWarning("Ceza sorgulama başarısız: Kullanıcı bulunamadı. Email: {Email}", email);
                 return NotFound(ex.Message);
+            }
+        }
+
+        [Authorize]
+        [HttpGet("my-active-fines")]
+        public async Task<IActionResult> GetActiveFines([FromQuery] FinePageableDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            _logger.LogInformation(
+                "Aktif ceza sorgusu alındı. UserId: {UserId}, Page: {Page}, PageSize: {PageSize}",
+                userId, dto.page, dto.pageSize);
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                _logger.LogWarning("Aktif ceza sorgusu başarısız: Token içerisinden UserId alınamadı.");
+                return Unauthorized("Kullanıcı doğrulanamadı.");
+            }
+
+            try
+            {
+                var result = await _fineService.GetActiveFinesByUserIdAsync(userId, dto);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Aktif ceza sorgusu sırasında geçersiz istek hatası. UserId: {UserId}", userId);
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Aktif ceza bulunamadı. UserId: {UserId}", userId);
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Aktif ceza sorgusu sırasında beklenmeyen bir hata oluştu. UserId: {UserId}", userId);
+                return StatusCode(500, "Aktif cezalar alınırken bir hata oluştu.");
+            }
+        }
+
+
+        [Authorize]
+        [HttpGet("my-history-fines")]
+        public async Task<IActionResult> GetInactiveFines([FromQuery] FinePageableDto dto)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            _logger.LogInformation(
+                "Pasif ceza sorgusu alındı. UserId: {UserId}, Page: {Page}, PageSize: {PageSize}",
+                userId, dto.page, dto.pageSize);
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                _logger.LogWarning("Pasif ceza sorgusu başarısız: Token içerisinden UserId alınamadı.");
+                return Unauthorized("Kullanıcı doğrulanamadı.");
+            }
+
+            try
+            {
+                var result = await _fineService.GetInActiveFinesByUserIdAsync(userId, dto);
+                return Ok(result);
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogWarning(ex, "Ceza kayıtları sorgusu sırasında geçersiz istek hatası. UserId: {UserId}", userId);
+                return BadRequest(ex.Message);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Ceza kayıtları bulunamadı. UserId: {UserId}", userId);
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ceza kayıtları sorgusu sırasında beklenmeyen bir hata oluştu. UserId: {UserId}", userId);
+                return StatusCode(500, "Ceza kayıtları alınırken bir hata oluştu.");
             }
         }
 

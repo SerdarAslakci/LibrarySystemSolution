@@ -100,5 +100,31 @@ namespace LibrarySystem.API.Repositories
 
             return fine;
         }
+
+        public async Task<IEnumerable<Fine>> GetActiveFinesByUserIdAsync(string userId, int page, int pageSize)
+        {
+            return await _context.Fines
+                .Include(f => f.Loan)
+                    .ThenInclude(l => l.BookCopy)
+                        .ThenInclude(bc => bc.Book)
+                .Include(f => f.FineType)
+                .Where(f => f.UserId == userId && f.IsActive == true)
+                .OrderByDescending(f => f.IssuedDate)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Fine>> GetInActiveFinesByUserIdAsync(string userId, int page, int pageSize)
+        {
+            return await _context.Fines
+                .Include(f => f.Loan)
+                    .ThenInclude(l => l.BookCopy)
+                        .ThenInclude(bc => bc.Book)
+                .Include(f => f.FineType)
+                .Where(f => f.UserId == userId && f.IsActive == false)
+                .OrderByDescending(f => f.IssuedDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
     }
 }

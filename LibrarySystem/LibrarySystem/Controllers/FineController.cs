@@ -31,15 +31,15 @@ namespace LibrarySystem.API.Controllers
             }
             catch (ArgumentNullException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ex.Message);
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Bir sunucu hatası oluştu.", detail = ex.Message });
+                return StatusCode(500, $"Bir sunucu hatası oluştu. {ex.Message}");
             }
         }
 
@@ -57,7 +57,7 @@ namespace LibrarySystem.API.Controllers
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning("Ceza sorgulama başarısız: Kullanıcı bulunamadı. Email: {Email}", email);
-                return NotFound(new { message = ex.Message });
+                return NotFound(ex.Message);
             }
         }
 
@@ -78,7 +78,7 @@ namespace LibrarySystem.API.Controllers
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning("Ceza kaldırma başarısız: Ceza bulunamadı. FineId: {FineId}", fineId);
-                return NotFound(new { message = ex.Message });
+                return NotFound(ex.Message);
             }
         }
     }

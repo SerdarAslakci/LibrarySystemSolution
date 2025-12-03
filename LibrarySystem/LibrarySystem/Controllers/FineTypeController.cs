@@ -43,12 +43,12 @@ namespace LibrarySystem.API.Controllers
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning("Ceza tipi sorgulama başarısız: ID {Id} bulunamadı.", id);
-                return NotFound(new { message = ex.Message });
+                return NotFound(ex.Message);
             }
             catch (ArgumentException ex)
             {
                 _logger.LogWarning("Ceza tipi sorgulama hatası (Argüman): {Message}", ex.Message);
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ex.Message);
             }
         }
 
@@ -59,7 +59,7 @@ namespace LibrarySystem.API.Controllers
             _logger.LogInformation("Yeni ceza tipi ekleme isteği: {Name}", fineTypeDto?.Name);
 
             if (fineTypeDto == null)
-                return BadRequest(new { message = "Ceza tipi boş olamaz." });
+                return BadRequest("Ceza tipi boş olamaz.");
 
             if (!ModelState.IsValid)
             {
@@ -73,15 +73,20 @@ namespace LibrarySystem.API.Controllers
                 _logger.LogInformation("Ceza tipi başarıyla eklendi. ID: {Id}", added.Id);
                 return CreatedAtAction(nameof(GetById), new { id = added.Id }, added);
             }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Ceza tipi ekleme hatası (Çakışma/Geçersiz İşlem): {Message}", ex.Message);
+                return BadRequest(ex.Message);
+            }
             catch (ArgumentException ex)
             {
                 _logger.LogWarning("Ceza tipi ekleme hatası (Argüman): {Message}", ex.Message);
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Ceza tipi eklenirken sunucu hatası.");
-                return StatusCode(500, new { message = "Ceza tipi eklenirken bir hata oluştu." });
+                return StatusCode(500, "Ceza tipi eklenirken bir hata oluştu.");
             }
         }
 
@@ -92,7 +97,7 @@ namespace LibrarySystem.API.Controllers
             _logger.LogInformation("Ceza tipi güncelleme isteği. ID: {Id}", fineType?.Id);
 
             if (fineType == null)
-                return BadRequest(new { message = "Geçersiz ceza tipi" });
+                return BadRequest("Geçersiz ceza tipi");
 
             if (!ModelState.IsValid)
             {
@@ -109,17 +114,22 @@ namespace LibrarySystem.API.Controllers
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning("Ceza tipi güncelleme hatası (Bulunamadı): ID {Id}", fineType.Id);
-                return NotFound(new { message = ex.Message });
+                return NotFound(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Ceza tipi güncelleme hatası (Çakışma/Geçersiz İşlem): ID {Id} - {Message}", fineType.Id, ex.Message);
+                return BadRequest(ex.Message);
             }
             catch (ArgumentException ex)
             {
                 _logger.LogWarning("Ceza tipi güncelleme hatası (Argüman): {Message}", ex.Message);
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Ceza tipi güncellenirken sunucu hatası. ID: {Id}", fineType.Id);
-                return StatusCode(500, new { message = "Ceza tipi güncellenirken bir hata oluştu." });
+                return StatusCode(500, "Ceza tipi güncellenirken bir hata oluştu.");
             }
         }
     }

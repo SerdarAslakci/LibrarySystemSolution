@@ -43,6 +43,13 @@ namespace LibrarySystem.API.Services
 
             var user = await _userManager.FindByEmailAsync(loginDto.Email);
 
+            if (user == null || !user.Email.Equals(loginDto.Email, StringComparison.Ordinal))
+            {
+                _logger.LogWarning("Başarısız giriş denemesi: E-posta bulunamadı veya case-sensitive uyuşmuyor. ({Email})", loginDto.Email);
+                throw new ArgumentException("E-posta adresi veya parola hatalı. Lütfen bilgilerinizi kontrol edin.");
+            }
+
+
             if (user == null)
             {
                 _logger.LogWarning("Başarısız giriş denemesi: E-posta bulunamadı. ({Email})", loginDto.Email);

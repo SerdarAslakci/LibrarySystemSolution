@@ -34,7 +34,7 @@ namespace LibrarySystem.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Kullanıcı listeleme sırasında hata.");
-                return StatusCode(500, new { message = "Sunucu hatası oluştu." });
+                return StatusCode(500,"Sunucu hatası oluştu.");
             }
         }
 
@@ -49,7 +49,7 @@ namespace LibrarySystem.API.Controllers
                 if (user == null)
                 {
                     _logger.LogWarning("{UserId} id'li kullanıcı bulunamadı.", id);
-                    return NotFound(new { message = "Kullanıcı bulunamadı." });
+                    return NotFound("Kullanıcı bulunamadı.");
                 }
 
                 return Ok(user);
@@ -57,7 +57,7 @@ namespace LibrarySystem.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Kullanıcı (ID) sorgulama hatası: {UserId}", id);
-                return StatusCode(500, new { message = ex.Message });
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -73,7 +73,7 @@ namespace LibrarySystem.API.Controllers
                 if (user == null)
                 {
                     _logger.LogWarning("{Email} adresli kullanıcı bulunamadı.", email);
-                    return NotFound(new { message = "Kullanıcı bulunamadı." });
+                    return NotFound("Kullanıcı bulunamadı.");
                 }
 
                 return Ok(user);
@@ -81,7 +81,7 @@ namespace LibrarySystem.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Kullanıcı (Email) sorgulama hatası: {Email}", email);
-                return StatusCode(500, new { message = ex.Message });
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -95,7 +95,7 @@ namespace LibrarySystem.API.Controllers
             if (userId == null)
             {
                 _logger.LogWarning("Mevcut kullanıcı kimliği alınamadı.");
-                return Unauthorized(new { message = "Kullanıcı kimliği alınamadı." });
+                return Unauthorized("Kullanıcı kimliği alınamadı.");
             }
 
             try
@@ -105,14 +105,14 @@ namespace LibrarySystem.API.Controllers
                 if (user == null)
                 {
                     _logger.LogWarning("Mevcut kullanıcı bulunamadı: ID '{UserId}'", userId);
-                    return NotFound(new { message = "Kullanıcı bulunamadı." });
+                    return NotFound("Kullanıcı bulunamadı.");
                 }
                 return Ok(user);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Mevcut kullanıcı sorgulama hatası: {UserId}", userId);
-                return StatusCode(500, new { message = ex.Message });
+                return StatusCode(500, ex.Message);
             }
         }
     }

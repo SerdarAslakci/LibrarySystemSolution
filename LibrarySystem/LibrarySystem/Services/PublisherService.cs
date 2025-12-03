@@ -163,6 +163,18 @@ namespace LibrarySystem.API.Services
         {
             _logger.LogInformation("Yayınevi güncelleme isteği alındı. ID: {PublisherId}", id);
 
+
+
+            var publisherExists = await _publisherRepository.GetByNameAsync(publisherDto.Name);
+
+            var duplicatePublisher = publisherExists.FirstOrDefault(p => p.Id != id);
+
+            if (duplicatePublisher != null)
+            {
+                _logger.LogWarning("Yayınevi güncelleme başarısız: '{PublisherName}' adı zaten başka bir yayınevi tarafından kullanılıyor.", publisherDto.Name);
+                throw new InvalidOperationException("Bu yayınevi adı zaten mevcut");
+            }
+
             var publisherData = new Publisher
             {
                 Name = publisherDto.Name

@@ -76,7 +76,7 @@ namespace LibrarySystem.API.Controllers
                 if (result == null)
                 {
                     _logger.LogWarning("Controller: Aranan isimle eşleşen kitap bulunamadı. Parametre: {Name}", name);
-                    return NotFound(new { message = $"'{name}' ismine benzer veya eşleşen bir kitap bulunamadı." });
+                    return NotFound($"'{name}' ismine benzer veya eşleşen bir kitap bulunamadı.");
                 }
 
                 _logger.LogInformation("Controller: Kitap başarıyla bulundu ve dönülüyor");
@@ -85,12 +85,12 @@ namespace LibrarySystem.API.Controllers
             catch (ArgumentException ex)
             {
                 _logger.LogWarning(ex, "Controller: Geçersiz arama parametresi.");
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Controller: Kitap aranırken beklenmeyen bir hata oluştu.");
-                return StatusCode(500, new { message = "Sunucu hatası oluştu." });
+                return StatusCode(500, "Sunucu hatası oluştu.");
             }
         }
 
@@ -109,11 +109,11 @@ namespace LibrarySystem.API.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = ex.Message });
-            }
+                return NotFound(ex.Message);
+            }   
             catch (ArgumentException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest( ex.Message);
             }
             catch (Exception ex)
             {
@@ -143,22 +143,17 @@ namespace LibrarySystem.API.Controllers
             catch (ArgumentException ex)
             {
                 _logger.LogWarning("Kitap güncelleme hatası (Argüman): {Message}", ex.Message);
-                return BadRequest(new { Success = false, Message = ex.Message });
+                return BadRequest( ex.Message );
             }
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning("Kitap güncelleme hatası (Bulunamadı): ID {BookId}", id);
-                return NotFound(new { Success = false, Message = ex.Message });
+                return NotFound(ex.Message );
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Kitap güncelleme sırasında sunucu hatası. ID: {BookId}", id);
-                return StatusCode(500, new
-                {
-                    Success = false,
-                    Message = "Beklenmedik bir hata oluştu.",
-                    Detail = ex.Message
-                });
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -170,7 +165,7 @@ namespace LibrarySystem.API.Controllers
             _logger.LogInformation("Kitap silme isteği. ID: {BookId}", id);
 
             if (id <= 0)
-                return BadRequest(new { Success = false, Message = "Geçersiz kitap ID'si." });
+                return BadRequest( "Geçersiz kitap ID'si." );
 
             try
             {
@@ -178,19 +173,16 @@ namespace LibrarySystem.API.Controllers
                 if (result)
                 {
                     _logger.LogInformation("Kitap başarıyla silindi. ID: {BookId}", id);
-                    return Ok(new
-                    {
-                        Success = true,
-                        Message = "Kitap başarıyla silindi."
-                    });
+                    return Ok("Kitap başarıyla silindi."
+                    );
                 }
                 _logger.LogWarning("Kitap silinemedi (Bulunamadı veya işlem başarısız). ID: {BookId}", id);
-                return NotFound(new { Success = false, Message = "Kitap bulunamadı." });
+                return NotFound("Kitap bulunamadı.");
             }
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning("Kitap silme hatası (Bulunamadı): {Message}", ex.Message);
-                return NotFound(new { Success = false, Message = ex.Message });
+                return NotFound(ex.Message);
             }
             catch (Exception ex)
             {
@@ -209,7 +201,7 @@ namespace LibrarySystem.API.Controllers
         public async Task<IActionResult> GetBookById(int id)
         {
             if (id <= 0)
-                return BadRequest(new { Success = false, Message = "Geçersiz kitap ID'si." });
+                return BadRequest("Geçersiz kitap ID'si.");
 
             try
             {
@@ -217,24 +209,20 @@ namespace LibrarySystem.API.Controllers
                 if (book == null)
                 {
                     _logger.LogWarning("Kitap getirme başarısız: ID {BookId} bulunamadı.", id);
-                    return NotFound(new { Success = false, Message = "Kitap bulunamadı." });
+                    return NotFound("Kitap bulunamadı.");
                 }
 
                 return Ok(book);
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { Success = false, Message = ex.Message });
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Kitap getirme sırasında sunucu hatası. ID: {BookId}", id);
-                return StatusCode(500, new
-                {
-                    Success = false,
-                    Message = "Beklenmedik bir hata oluştu.",
-                    Detail = ex.Message
-                });
+                return StatusCode(500, ex.Message
+                );
             }
         }
 
@@ -281,17 +269,13 @@ namespace LibrarySystem.API.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { Success = false, Message = ex.Message });
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Detaylı kitap getirme sırasında sunucu hatası. ID: {BookId}", id);
-                return StatusCode(500, new
-                {
-                    Success = false,
-                    Message = "Beklenmedik bir hata oluştu.",
-                    Detail = ex.Message
-                });
+                return StatusCode(500,ex.Message
+                );
             }
         }
 
@@ -309,12 +293,8 @@ namespace LibrarySystem.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Tüm kitapları getirme sırasında sunucu hatası.");
-                return StatusCode(500, new
-                {
-                    Success = false,
-                    Message = "Beklenmedik bir hata oluştu.",
-                    Detail = ex.Message
-                });
+                return StatusCode(500, ex.Message
+                );
             }
         }
 
@@ -337,22 +317,18 @@ namespace LibrarySystem.API.Controllers
             catch (ArgumentException ex)
             {
                 _logger.LogWarning("Kitap-Yazar ekleme hatası (Argüman): {Message}", ex.Message);
-                return BadRequest(new { Success = false, Message = ex.Message });
+                return BadRequest(ex.Message);
             }
             catch (InvalidOperationException ex)
             {
                 _logger.LogWarning("Kitap-Yazar ekleme hatası (Çakışma): {Message}", ex.Message);
-                return Conflict(new { Success = false, Message = ex.Message });
+                return Conflict(ex.Message);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Kitap-Yazar ekleme sırasında sunucu hatası.");
-                return StatusCode(500, new
-                {
-                    Success = false,
-                    Message = "Beklenmedik bir hata oluştu.",
-                    Detail = ex.Message
-                });
+                return StatusCode(500, ex.Message
+                );
             }
         }
 
@@ -361,7 +337,7 @@ namespace LibrarySystem.API.Controllers
         public async Task<IActionResult> IsBookAuthorExists(int bookId, int authorId)
         {
             if (bookId <= 0 || authorId <= 0)
-                return BadRequest(new { Success = false, Message = "Geçersiz kitap veya yazar ID'si." });
+                return BadRequest("Geçersiz kitap veya yazar ID'si.");
 
             try
             {
@@ -370,7 +346,7 @@ namespace LibrarySystem.API.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { Success = false, Message = ex.Message });
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
@@ -403,7 +379,7 @@ namespace LibrarySystem.API.Controllers
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning("Kitap kopyası ekleme hatası (Bulunamadı): {Message}", ex.Message);
-                return NotFound(new { Success = false, Message = ex.Message });
+                return NotFound(ex.Message);
             }
             catch (Exception ex)
             {
@@ -425,10 +401,10 @@ namespace LibrarySystem.API.Controllers
             _logger.LogInformation("Kitap kopyası güncelleme isteği. CopyId: {CopyId}", id);
 
             if (id <= 0)
-                return BadRequest(new { Success = false, Message = "Geçersiz kitap kopyası ID'si." });
+                return BadRequest("Geçersiz kitap kopyası ID'si.");
 
             if (dto == null)
-                return BadRequest(new { Success = false, Message = "Güncelleme bilgisi boş olamaz." });
+                return BadRequest("Güncelleme bilgisi boş olamaz.");
 
             try
             {
@@ -439,22 +415,18 @@ namespace LibrarySystem.API.Controllers
             catch (ArgumentException ex)
             {
                 _logger.LogWarning("Kopya güncelleme hatası (Argüman): {Message}", ex.Message);
-                return BadRequest(new { Success = false, Message = ex.Message });
+                return BadRequest(ex.Message);
             }
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning("Kopya güncelleme hatası (Bulunamadı): ID {CopyId}", id);
-                return NotFound(new { Success = false, Message = ex.Message });
+                return NotFound( ex.Message );
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Kitap kopyası güncelleme sırasında sunucu hatası. ID: {CopyId}", id);
-                return StatusCode(500, new
-                {
-                    Success = false,
-                    Message = "Beklenmedik bir hata oluştu.",
-                    Detail = ex.Message
-                });
+                return StatusCode(500, ex.Message
+                );
             }
         }
 
@@ -466,7 +438,7 @@ namespace LibrarySystem.API.Controllers
             _logger.LogInformation("Kitap kopyası silme isteği. CopyId: {CopyId}", id);
 
             if (id <= 0)
-                return BadRequest(new { Success = false, Message = "Geçersiz kitap kopyası ID'si." });
+                return BadRequest("Geçersiz kitap kopyası ID'si.");
 
             try
             {
@@ -481,22 +453,18 @@ namespace LibrarySystem.API.Controllers
                     });
                 }
                 _logger.LogWarning("Kitap kopyası silinemedi (Bulunamadı veya başarısız). ID: {CopyId}", id);
-                return NotFound(new { Success = false, Message = "Kitap kopyası bulunamadı." });
+                return NotFound("Kitap kopyası bulunamadı.");
             }
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning("Kitap kopyası silme hatası (Bulunamadı): {Message}", ex.Message);
-                return NotFound(new { Success = false, Message = ex.Message });
+                return NotFound(ex.Message);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Kitap kopyası silme sırasında sunucu hatası. ID: {CopyId}", id);
-                return StatusCode(500, new
-                {
-                    Success = false,
-                    Message = "Beklenmedik bir hata oluştu.",
-                    Detail = ex.Message
-                });
+                return StatusCode(500, ex.Message
+                );
             }
         }
     }

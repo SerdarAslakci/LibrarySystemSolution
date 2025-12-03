@@ -47,7 +47,7 @@ namespace LibrarySystem.API.Controllers
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning(ex, "Yazar bulunamadı. ID: {Id}", id);
-                return NotFound(new { message = ex.Message });
+                return NotFound(ex.Message);
             }
             catch (Exception ex)
             {
@@ -63,7 +63,7 @@ namespace LibrarySystem.API.Controllers
             if (string.IsNullOrWhiteSpace(firstName) && string.IsNullOrWhiteSpace(lastName))
             {
                 _logger.LogWarning("Yazar arama başarısız: Hem Ad hem Soyad boş geçilmiş.");
-                return BadRequest(new { message = "Arama yapmak için en az bir isim veya soyisim girmelisiniz." });
+                return BadRequest("Arama yapmak için en az bir isim veya soyisim girmelisiniz.");
             }
 
             try
@@ -99,12 +99,12 @@ namespace LibrarySystem.API.Controllers
             catch (ArgumentNullException ex)
             {
                 _logger.LogWarning(ex, "Eksik argüman hatası.");
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ex.Message);
             }
             catch (ArgumentException ex)
             {
                 _logger.LogWarning(ex, "Geçersiz argüman hatası.");
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ex.Message);
             }
             catch (InvalidOperationException ex)
             {
@@ -133,7 +133,7 @@ namespace LibrarySystem.API.Controllers
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning(ex, "Silme işlemi sırasında yazar bulunamadı. ID: {Id}", id);
-                return NotFound(new { message = ex.Message });
+                return NotFound(ex.Message);
             }
             catch (Exception ex)
             {
@@ -200,12 +200,17 @@ namespace LibrarySystem.API.Controllers
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning("Güncellenmek istenen yazar bulunamadı. ID: {Id}", id);
-                return NotFound(new { message = ex.Message });
+                return NotFound( ex.Message );
+            }
+            catch(InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Yazar güncelleme başarısız: '{FirstName} {LastName}' zaten sistemde mevcut. ID: {Id}", authorDto.FirstName, authorDto.LastName, id);
+                return BadRequest("Bu yazar zaten sistemde mevcut." );
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Yazar güncellenirken sunucu taraflı bir hata oluştu. ID: {Id}", id);
-                return StatusCode(500, new { message = "İşlem sırasında sunucu kaynaklı bir hata oluştu. Lütfen daha sonra tekrar deneyiniz." });
+                return StatusCode(500, "İşlem sırasında sunucu kaynaklı bir hata oluştu. Lütfen daha sonra tekrar deneyiniz." );
             }
         }
     }

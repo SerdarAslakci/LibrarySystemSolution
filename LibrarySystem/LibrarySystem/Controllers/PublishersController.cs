@@ -134,7 +134,7 @@ namespace LibrarySystem.API.Controllers
             catch (ArgumentNullException ex)
             {
                 _logger.LogWarning(ex, "Yayınevi ekleme başarısız: Eksik veri (DTO null).");
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(ex.Message);
             }
             catch (InvalidOperationException ex)
             {
@@ -164,7 +164,7 @@ namespace LibrarySystem.API.Controllers
             {
 
                 _logger.LogWarning(ex, "Silinmek istenen yayınevi bulunamadı. ID: {Id}", id);
-                return NotFound(new { message = ex.Message });
+                return NotFound(ex.Message);
             }
             catch (Exception ex)
             {
@@ -197,12 +197,17 @@ namespace LibrarySystem.API.Controllers
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning("Güncellenmek istenen yayınevi bulunamadı. ID: {Id}", id);
-                return NotFound(new { message = ex.Message });
+                return NotFound( ex.Message );
+            }
+            catch(InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Yayınevi güncelleme başarısız: '{PublisherName}' adı zaten başka bir yayınevi tarafından kullanılıyor. ID: {Id}", publisherDto.Name, id);
+                return BadRequest(ex.Message );
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Yayınevi güncellenirken sunucu taraflı kritik bir hata oluştu. ID: {Id}", id);
-                return StatusCode(500, new { message = "İşlem sırasında sunucu kaynaklı bir hata oluştu. Lütfen daha sonra tekrar deneyiniz." });
+                return StatusCode(500,"İşlem sırasında sunucu kaynaklı bir hata oluştu. Lütfen daha sonra tekrar deneyiniz.");
             }
         }
     }

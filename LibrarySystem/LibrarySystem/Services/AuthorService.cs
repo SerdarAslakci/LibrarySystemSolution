@@ -168,6 +168,14 @@ namespace LibrarySystem.API.Services
         {
             _logger.LogInformation("Yazar güncelleme işlemi başladı. ID: {Id}", id);
 
+
+            var author = await _authorRepository.GetAuthorsByNameAsync(authorDto.FirstName, authorDto.LastName);
+
+            if (author.Any(a => a.Id != id))
+            {
+                _logger.LogWarning("Yazar güncelleme başarısız: '{FirstName} {LastName}' zaten sistemde mevcut.", authorDto.FirstName, authorDto.LastName);
+                throw new InvalidOperationException("Bu yazar zaten sistemde mevcut.");
+            }
             var authorData = new Author
             {
                 FirstName = authorDto.FirstName,

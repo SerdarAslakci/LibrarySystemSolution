@@ -171,6 +171,17 @@ namespace LibrarySystem.API.Services
                 throw new KeyNotFoundException($"ID: {id} olan kategori bulunamadı.");
             }
 
+            var categories = await _categoryRepository.GetByNameAsync(categoryDto.Name);
+
+            var sameNameCategory = categories
+                .FirstOrDefault(x => x.Name.Equals(categoryDto.Name, StringComparison.OrdinalIgnoreCase));
+
+            if (sameNameCategory != null)
+            {
+                _logger.LogError("Güncelleme başarısız: Aynı isimde kategori zaten mevcut. İsim: {CategoryName}", categoryDto.Name);
+                throw new InvalidOperationException("Aynı isimde kategori zaten mevcut.");
+            }
+
             existingCategory.Name = categoryDto.Name;
 
             var updatedCategory = await _categoryRepository.UpdateCategoryAsync(id, existingCategory);

@@ -218,6 +218,11 @@ namespace LibrarySystem.API.Controllers
                 _logger.LogWarning("Güncellenmek istenen kategori bulunamadı. ID: {Id}", id);
                 return NotFound(new { message = ex.Message });
             }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Kategori güncellenemedi. ID: {Id}, Hata: {Error}", id, ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Kategori güncellenirken sunucu taraflı kritik bir hata oluştu. ID: {Id}", id);

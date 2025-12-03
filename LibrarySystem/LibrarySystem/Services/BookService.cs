@@ -280,54 +280,49 @@ namespace LibrarySystem.API.Services
             return await _bookRepository.IsBookAuthorExistsAsync(bookId, authorId);
         }
 
-        public async Task<BookCopy> UpdateBookCopyAsync(int id, UpdateBookCopyDto updateBookCopyDto)
+        public async Task<BookCopy> UpdateBookCopyAsync(int id, UpdateBookCopyDto dto)
         {
-            if (updateBookCopyDto == null)
-                throw new ArgumentNullException(nameof(updateBookCopyDto));
+            if (dto == null)
+                throw new ArgumentNullException(nameof(dto));
 
-            var existingCopy = await _bookRepository.GetBookCopyByIdAsync(id);
-            if (existingCopy == null)
+            var existing = await _bookRepository.GetBookCopyByIdAsync(id);
+            if (existing == null)
             {
                 _logger.LogWarning("Kitap kopyası güncelleme başarısız: Kopya bulunamadı. ID: {CopyId}", id);
-                throw new KeyNotFoundException($"ID {id} ile kayıtlı kitap kopyası bulunamadı.");
+                throw new KeyNotFoundException($"ID {id} ile kitap kopyası bulunamadı.");
             }
 
-            var bookCopyToUpdate = new BookCopy
+            if (dto.BookId.HasValue)
             {
-                BookId = updateBookCopyDto.BookId ?? existingCopy.BookId,
-                BarcodeNumber = updateBookCopyDto.BarcodeNumber ?? existingCopy.BarcodeNumber,
-                IsAvailable = updateBookCopyDto.IsAvailable ?? existingCopy.IsAvailable
-            };
-
-            if (updateBookCopyDto.ShelfCode != null && updateBookCopyDto.RoomId.HasValue)
-            {
-                var shelf = await _shelfService.GetShelfByCodeAndRoomIdAsync(
-                    updateBookCopyDto.ShelfCode,
-                    updateBookCopyDto.RoomId.Value);
-
-                bookCopyToUpdate.ShelfId = shelf.Id;
-            }
-            else
-            {
-                bookCopyToUpdate.ShelfId = existingCopy.ShelfId;
-            }
-
-            if (updateBookCopyDto.BookId.HasValue)
-            {
-                var bookExists = await _bookRepository.GetBookByIdAsync(updateBookCopyDto.BookId.Value);
-                if (bookExists == null)
+                var book = await _bookRepository.GetBookByIdAsync(dto.BookId.Value);
+                if (book == null)
                 {
-                    _logger.LogWarning("Kitap kopyası güncelleme başarısız: Yeni referans kitap bulunamadı. BookId: {BookId}", updateBookCopyDto.BookId.Value);
-                    throw new KeyNotFoundException($"ID {updateBookCopyDto.BookId.Value} ile kayıtlı ana kitap bulunamadı.");
+                    _logger.LogWarning(
+                        "Kitap kopyası güncelleme başarısız: Yeni referans kitap bulunamadı. BookId: {BookId}",
+                        dto.BookId.Value
+                    );
+                    throw new KeyNotFoundException($"ID {dto.BookId.Value} ile kayıtlı ana kitap bulunamadı.");
                 }
+
+                existing.BookId = dto.BookId.Value;
             }
 
-            var updatedCopy = await _bookRepository.UpdateBookCopyAsync(id, bookCopyToUpdate);
+            existing.BarcodeNumber = dto.BarcodeNumber ?? existing.BarcodeNumber;
+            existing.IsAvailable = dto.IsAvailable ?? existing.IsAvailable;
+
+            if (!string.IsNullOrEmpty(dto.ShelfCode) && dto.RoomId.HasValue)
+            {
+                var shelf = await _shelfService.GetShelfByCodeAndRoomIdAsync(dto.ShelfCode, dto.RoomId.Value);
+                existing.ShelfId = shelf.Id;
+            }
+
+            var updated = await _bookRepository.UpdateBookCopyAsync(id, existing);
 
             _logger.LogInformation("Kitap kopyası güncellendi. ID: {CopyId}", id);
 
-            return updatedCopy;
+            return updated;
         }
+
 
         public async Task<bool> DeleteBookCopyAsync(int id)
         {

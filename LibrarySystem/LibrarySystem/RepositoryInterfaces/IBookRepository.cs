@@ -15,6 +15,8 @@ namespace LibrarySystem.API.RepositoryInterfaces
         Task<BookCopy?> GetBookCopyByBarcodeAsync(string barcode);
         Task<IEnumerable<Book>?> GetBooksByNameWithDetailsAsync(string name);
         Task<IEnumerable<Book>> GetOtherBooksByAuthorAsync(int authorId, int size, int? categoryId = null);
+        Task<BookAuthor?> GetBookAuthorByBookIdAsync(int bookId);
+
         Task<int> GetBookCountAsync();
 
 
@@ -24,6 +26,7 @@ namespace LibrarySystem.API.RepositoryInterfaces
         Task<bool> IsBookAuthorExistsAsync(int bookId, int authorId);
         Task<Book> UpdateBookAsync(int id, Book book);
         Task<BookCopy> UpdateBookCopyAsync(int id, BookCopy bookCopy);
+        Task DeleteBookAuthorRelationAsync(BookAuthor bookAuthor);
         Task<bool> SetBookCopyUnAvailableAsync(int bookCopyId);
 
         Task<bool> DeleteBookAsync(int id);

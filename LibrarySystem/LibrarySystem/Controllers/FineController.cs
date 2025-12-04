@@ -159,6 +159,49 @@ namespace LibrarySystem.API.Controllers
                 _logger.LogWarning("Ceza kaldırma başarısız: Ceza bulunamadı. FineId: {FineId}", fineId);
                 return NotFound(ex.Message);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ceza ödeme işlemi sırasında beklenmeyen bir hata oluştu. FineId: {FineId}", fineId);
+                return StatusCode(500, "Ceza ödenirken bir hata oluştu.");
+            }
+        }
+
+        [Authorize(Roles = "User")]
+        [HttpPost("pay")]
+        public async Task<IActionResult> PayFine([FromQuery] int fineId)
+        {
+            _logger.LogInformation("Ceza kaldırma işlemi başlatıldı. FineId: {FineId}", fineId);
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                _logger.LogWarning("Ceza ödeme işlemi başarısız: Token içerisinden UserId alınamadı.");
+                return Unauthorized("Kullanıcı doğrulanamadı. Lütfen giriş yapınız.");
+            }
+            try
+            {
+                var fine = await _fineService.PayFineAsync(userId,fineId);
+
+                _logger.LogInformation("Ceza kaldırma işlemi başarılı. FineId: {FineId}", fineId);
+
+                return Ok(fine);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning("Ceza kaldırma başarısız: Ceza bulunamadı. FineId: {FineId}", fineId);
+                return NotFound(ex.Message);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning("Ceza ödeme başarısız: Ceza kullanıcısı ile ödeme yapan kullanıcı uyuşmuyor. FineId: {FineId}, UserId: {UserId}", fineId, userId);
+                return StatusCode(403,ex.Message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ceza ödeme işlemi sırasında beklenmeyen bir hata oluştu. FineId: {FineId}, UserId: {UserId}", fineId, userId);
+                return StatusCode(500, "Ceza ödenirken bir hata oluştu.");
+            }
         }
     }
 }

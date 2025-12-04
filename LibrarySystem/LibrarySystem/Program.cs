@@ -7,6 +7,7 @@ using LibrarySystem.API.Services;
 using LibrarySystem.Models.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -120,6 +121,22 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+
+
+//Bizim istediğimiz şekilde hata mesajlarını döndürmesi için yapıldı
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var errors = context.ModelState.Values
+            .SelectMany(v => v.Errors)
+            .Select(e => e.ErrorMessage)
+            .ToList();
+
+        var resultString = string.Join("\n", errors);
+        return new BadRequestObjectResult(resultString);
+    };
+});
 
 builder.Host.UseSerilog();
 

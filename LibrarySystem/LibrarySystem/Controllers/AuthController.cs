@@ -6,6 +6,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -24,12 +25,6 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegisterDto registerDto)
     {
         _logger.LogInformation("Kayıt olma isteği alındı. Email: {Email}", registerDto?.Email);
-
-        if (!ModelState.IsValid)
-        {
-            _logger.LogWarning("Kayıt olma isteği validasyona takıldı. Email: {Email}", registerDto?.Email);
-            return BadRequest("Kayıt bilgileri eksik veya hatalı formatta. Lütfen e-posta ve şifrenizi kontrol edin.");
-        }
 
         try
         {

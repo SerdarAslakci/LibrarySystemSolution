@@ -192,5 +192,16 @@ namespace LibrarySystem.API.Repositories
                 .Take(pageSize)
                 .ToListAsync();
         }
+
+        public async Task<Loan?> GetActiveLoanByBarcodeAsync(string barcode)
+        {
+            return await _context.Loans
+                .Include(l => l.BookCopy)
+                .Include(l => l.BookCopy.Book)
+                .Include(l => l.AppUser)
+                .FirstOrDefaultAsync(l =>
+                    l.BookCopy.BarcodeNumber == barcode &&
+                    l.ActualReturnDate == null);
+        }
     }
 }

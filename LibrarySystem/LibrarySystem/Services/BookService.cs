@@ -132,6 +132,14 @@ namespace LibrarySystem.API.Services
                 throw new KeyNotFoundException($"ID {createBookCopyDto.BookId} ile kayıtlı bir kitap bulunamadı.");
             }
 
+            var exist = await _bookRepository.GetBookCopyByBarcodeAsync(createBookCopyDto.BarcodeNumber);
+
+            if (exist != null)
+            {
+                _logger.LogWarning("Kitap kopyası eklenemedi: Aynı barkod numarası zaten mevcut. Barkod: {Barcode}", createBookCopyDto.BarcodeNumber);
+                throw new InvalidOperationException($"Barkod numarası '{createBookCopyDto.BarcodeNumber}' ile zaten kayıtlı bir kitap kopyası mevcut.");
+            }
+
             var room = await _roomService.GetRoomByIdAsync(createBookCopyDto.RoomId);
             if (room == null)
             {

@@ -381,15 +381,15 @@ namespace LibrarySystem.API.Controllers
                 _logger.LogWarning("Kitap kopyası ekleme hatası (Bulunamadı): {Message}", ex.Message);
                 return NotFound(ex.Message);
             }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Kitap kopyası ekleme hatası (Çakışma): {Message}", ex.Message);
+                return Conflict(ex.Message);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Kitap kopyası ekleme sırasında sunucu hatası.");
-                return StatusCode(500, new
-                {
-                    Success = false,
-                    Message = "Beklenmedik bir hata oluştu.",
-                    Detail = ex.Message
-                });
+                return StatusCode(500,$"Beklenmedik bir hata oluştu. {ex.Message}");
             }
         }
 

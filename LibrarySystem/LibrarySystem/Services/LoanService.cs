@@ -40,6 +40,13 @@ namespace LibrarySystem.API.Services
             if (string.IsNullOrWhiteSpace(userId))
                 throw new ArgumentException("UserId boş olamaz.", nameof(userId));
 
+
+            if(!await CanUserBorrowAsync(userId))
+            {                 
+                _logger.LogWarning("Ödünç alma başarısız: Kullanıcı ({UserId}) cezalıdır.", userId);
+                throw new InvalidOperationException("Kullanıcı cezalıdır. Ödünç alamaz.");
+            }
+
             var bookCopy = await _bookService.GetBookCopyByBarcodeAsync(dto.Barcode);
 
             if (bookCopy == null)
@@ -138,23 +145,36 @@ namespace LibrarySystem.API.Services
             return _mapper.Map<LoanHistoryDto>(loan);
         }
 
-        public async Task<ReturnSummaryDto?> ReturnBookAsync(string barcode)
+        public async Task<ReturnSummaryDto?> ReturnBookAsync(string userId, string barcode)
         {
             _logger.LogInformation("İade işlemi başlatıldı. Barkod: {Barcode}", barcode);
 
-            var loan = await _loanRepository.MarkAsReturnedByBarcodeAsync(barcode);
 
-            if (loan == null)
+            var loan = await _loanRepository.GetActiveLoanByBarcodeAsync(barcode);
+
+            if (loan != null && loan.UserId != userId)
+            {
+                _logger.LogWarning(
+                    "Yetkisiz iade girişimi. UserId: {UserId}, Kitap barkodu: {Barcode}, Loan başka kullanıcıya ait (OwnerId: {OwnerId}).",
+                    userId, barcode, loan.UserId
+                );
+
+                throw new UnauthorizedAccessException("Bu ödünç size ait değil.");
+            }
+
+            var returnedLoan = await _loanRepository.MarkAsReturnedByBarcodeAsync(barcode);
+
+            if (returnedLoan == null)
             {
                 _logger.LogWarning("İade başarısız: Bu barkoda ({Barcode}) ait aktif ödünç bulunamadı.", barcode);
                 throw new KeyNotFoundException("Bu barkoda ait aktif bir ödünç işlemi bulunamadı.");
             }
 
-            await _fineService.ProcessLateReturnAsync(loan);
+            await _fineService.ProcessLateReturnAsync(returnedLoan);
 
-            var summaryDto = _mapper.Map<ReturnSummaryDto>(loan);
+            var summaryDto = _mapper.Map<ReturnSummaryDto>(returnedLoan);
 
-            _logger.LogInformation("İade işlemi tamamlandı. LoanId: {LoanId}, Gecikme Var Mı: {HasPenalty}", loan.Id, summaryDto.ReturnStatus);
+            _logger.LogInformation("İade işlemi tamamlandı. LoanId: {LoanId}, Gecikme Var Mı: {HasPenalty}", returnedLoan.Id, summaryDto.ReturnStatus);
 
             return summaryDto;
         }

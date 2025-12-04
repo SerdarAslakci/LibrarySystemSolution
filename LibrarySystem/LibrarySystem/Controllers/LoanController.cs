@@ -269,7 +269,7 @@ namespace LibrarySystem.API.Controllers
 
             try
             {
-                var loanSummaryDto = await _loanService.ReturnBookAsync(returnBookDto.Barcode);
+                var loanSummaryDto = await _loanService.ReturnBookAsync(userId,returnBookDto.Barcode);
 
                 _logger.LogInformation("Kitap başarıyla iade edildi. LoanID: {LoanId}, Gecikme Cezası: {Penalty}", loanSummaryDto.LoanId, loanSummaryDto.ReturnStatus);
 
@@ -280,6 +280,15 @@ namespace LibrarySystem.API.Controllers
                 _logger.LogWarning("İade hatası (Bulunamadı): {Message}", ex.Message);
                 return NotFound(ex.Message);
             }
+            catch (UnauthorizedAccessException ex)
+            {
+                _logger.LogWarning(ex,
+                    "Yetkisiz erişim denemesi. UserId: {UserId}, Barcode: {Barcode}",
+                    userId, returnBookDto.Barcode);
+
+                return StatusCode(403, "Bu kitap sizin hesabınız üzerinden ödünç alınmamış. Başka bir kullanıcıya ait ödüncü iade edemezsiniz.");
+            }
+
             catch (InvalidOperationException ex)
             {
                 _logger.LogWarning("İade hatası (Geçersiz İşlem): {Message}", ex.Message);

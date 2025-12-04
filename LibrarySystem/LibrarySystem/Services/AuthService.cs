@@ -23,18 +23,22 @@ namespace LibrarySystem.API.Services
 
         public static string NormalizeUserName(string firstName, string lastName)
         {
-            string fullName = (firstName + lastName).Replace(" ", "").ToLowerInvariant();
+            string rawText = (firstName + lastName).Replace(" ", "");
+            string text = rawText
+                .Replace("İ", "i").Replace("I", "i").Replace("ı", "i")
+                .Replace("Ğ", "g").Replace("ğ", "g")
+                .Replace("Ü", "u").Replace("ü", "u")
+                .Replace("Ş", "s").Replace("ş", "s")
+                .Replace("Ö", "o").Replace("ö", "o")
+                .Replace("Ç", "c").Replace("ç", "c");
 
-            fullName = fullName.Replace("ş", "s")
-                               .Replace("ı", "i")
-                               .Replace("ğ", "g")
-                               .Replace("ç", "c")
-                               .Replace("ü", "u")
-                               .Replace("ö", "o");
+            string normalized = text.ToLowerInvariant();
+
+            normalized = System.Text.RegularExpressions.Regex.Replace(normalized, "[^a-z0-9]", "");
 
             string uniqueId = Guid.NewGuid().ToString("N").Substring(0, 8);
 
-            return fullName + uniqueId;
+            return normalized + uniqueId;
         }
 
         public async Task<AuthResult> LoginAsync(LoginDto loginDto)

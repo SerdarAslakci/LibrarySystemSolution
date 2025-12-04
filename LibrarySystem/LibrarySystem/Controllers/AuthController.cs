@@ -26,6 +26,17 @@ public class AuthController : ControllerBase
     {
         _logger.LogInformation("Kayıt olma isteği alındı. Email: {Email}", registerDto?.Email);
 
+        if (!ModelState.IsValid)
+        {
+            var errorMessages = ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .Where(msg => !string.IsNullOrEmpty(msg));
+
+            string combinedErrorMessage = string.Join(", ", errorMessages);
+            return BadRequest(ModelState);
+        }
+
         try
         {
             var result = await _authService.RegisterAsync(registerDto);

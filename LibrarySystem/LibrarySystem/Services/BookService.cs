@@ -177,17 +177,16 @@ namespace LibrarySystem.API.Services
             return result;
         }
 
-
-
         public async Task<Book> UpdateBookAsync(int id, CreateBookDto updateBookDto)
         {
             if (updateBookDto == null)
                 throw new ArgumentNullException(nameof(updateBookDto));
 
+            // ... (Kitap bulma ve diğer servis çağrıları aynı) ...
             var existingBook = await _bookRepository.GetBookByIdAsync(id);
             if (existingBook == null)
             {
-                _logger.LogWarning("Kitap güncelleme başarısız: Kitap bulunamadı. ID: {BookId}", id);
+                _logger.LogWarning("Kitap bulunamadı. ID: {BookId}", id);
                 throw new KeyNotFoundException($"ID {id} ile kayıtlı kitap bulunamadı.");
             }
 
@@ -202,7 +201,7 @@ namespace LibrarySystem.API.Services
 
             var bookToUpdate = new Book
             {
-                Title = updateBookDto.Title ?? throw new ArgumentException("Kitap başlığı boş olamaz."),
+                Title = updateBookDto.Title ?? throw new ArgumentException("Başlık boş olamaz."),
                 ISBN = updateBookDto.ISBN,
                 PageCount = updateBookDto.PageCount,
                 PublicationYear = updateBookDto.PublicationYear,
@@ -215,8 +214,20 @@ namespace LibrarySystem.API.Services
 
             if (author != null)
             {
-                bool authorExists = await _bookRepository.IsBookAuthorExistsAsync(id, author.Id);
-                if (!authorExists)
+                var existingRelation = await _bookRepository.GetBookAuthorByBookIdAsync(id);
+
+                if (existingRelation != null)
+                {
+                    await _bookRepository.DeleteBookAuthorRelationAsync(existingRelation);
+
+                    var newRelation = new BookAuthor
+                    {
+                        BookId = id,
+                        AuthorId = author.Id
+                    };
+                    await this.AddBookAuthorAsync(newRelation);
+                }
+                else
                 {
                     var bookAuthor = new BookAuthor
                     {
@@ -228,7 +239,6 @@ namespace LibrarySystem.API.Services
             }
 
             _logger.LogInformation("Kitap bilgileri güncellendi. ID: {BookId}", id);
-
             return updatedBook;
         }
 

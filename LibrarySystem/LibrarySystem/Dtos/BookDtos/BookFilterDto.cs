@@ -8,6 +8,8 @@ namespace LibrarySystem.API.Dtos.BookDtos
         public int? Page { get; set; } = 1;
         public string? Title { get; set; }
         public int? CategoryId { get; set; }
+        public int? AuthorId { get; set; }
+        public int? PublisherId { get; set; }
         public int? PublicationYearFrom { get; set; }
         public int? PublicationYearTo { get; set; }
         public string? Language { get; set; }

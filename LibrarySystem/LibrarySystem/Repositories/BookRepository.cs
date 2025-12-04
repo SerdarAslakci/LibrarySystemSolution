@@ -70,7 +70,17 @@ namespace LibrarySystem.API.Repositories
             int affectedRows = await _context.SaveChangesAsync();
 
             return affectedRows > 0;
-        } 
+        }
+
+        public async Task<BookAuthor?> GetBookAuthorByBookIdAsync(int bookId)
+        {
+            return await _context.BookAuthors.FirstOrDefaultAsync(ba => ba.BookId == bookId);
+        }
+        public async Task DeleteBookAuthorRelationAsync(BookAuthor bookAuthor)
+        {
+            _context.BookAuthors.Remove(bookAuthor);
+            await _context.SaveChangesAsync();
+        }
         public async Task<PaginatedResult<Book>> GetAllBooksAsync(BookFilterDto filterDto)
         {
 
@@ -91,6 +101,16 @@ namespace LibrarySystem.API.Repositories
             if (filterDto.CategoryId.HasValue)
             {
                 query = query.Where(b => b.CategoryId == filterDto.CategoryId.Value);
+            }
+
+            if(filterDto.AuthorId.HasValue)
+            {
+                query = query.Where(b => b.BookAuthors.Any(ba => ba.AuthorId == filterDto.AuthorId.Value));
+            }
+
+            if (filterDto.PublisherId.HasValue)
+            {
+                query = query.Where(b => b.PublisherId == filterDto.PublisherId.Value);
             }
 
             if (filterDto.PublicationYearFrom.HasValue)

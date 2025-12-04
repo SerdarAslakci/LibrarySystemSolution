@@ -126,5 +126,10 @@ namespace LibrarySystem.API.Repositories
                 .Take(pageSize)
                 .ToListAsync();
         }
+
+        public async Task<Fine?> GetFineByIdAsync(int id)
+        {
+            return await _context.Fines.FindAsync(id);
+        }
     }
 }

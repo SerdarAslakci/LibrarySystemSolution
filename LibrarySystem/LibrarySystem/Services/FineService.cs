@@ -84,6 +84,34 @@ namespace LibrarySystem.API.Services
             return userFineDto;
         }
 
+        public async Task<UserFineDto?> PayFineAsync(string userId, int fineId)
+        {
+            _logger.LogInformation("Ceza kaldırma işlemi başlatıldı. FineId: {FineId}", fineId);
+
+
+            var fine = await _fineRepository.GetFineByIdAsync(fineId);
+
+            if (fine == null)
+            {
+                _logger.LogWarning("Ceza ödeme başarısız: Ceza bulunamadı. FineId: {FineId}", fineId);
+                throw new KeyNotFoundException("Ceza bulunamadı.");
+            }
+
+            if(fine.UserId != userId)
+            {
+                _logger.LogWarning("Ceza ödeme başarısız: Ceza kullanıcısı ile ödeme yapan kullanıcı uyuşmuyor. FineId: {FineId}, FineUserId: {FineUserId}, PayingUserId: {PayingUserId}", fineId, fine.UserId, userId);
+                throw new UnauthorizedAccessException("Bu cezayı ödeme yetkiniz yok.");
+            }
+
+            var paidFine = await _fineRepository.RevokeFineByIdAscyn(fineId);
+
+            var userFineDto = _mapper.Map<UserFineDto>(paidFine);
+
+            _logger.LogInformation("Ceza başarıyla kaldırıldı. FineId: {FineId}", fineId);
+
+            return userFineDto;
+        }
+
         public async Task<Fine?> ProcessLateReturnAsync(Loan loan)
         {
             if (loan == null)

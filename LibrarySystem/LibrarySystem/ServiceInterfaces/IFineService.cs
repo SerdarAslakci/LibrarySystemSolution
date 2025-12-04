@@ -11,6 +11,7 @@ namespace LibrarySystem.API.ServiceInterfaces
         Task<Fine?> ProcessLateReturnAsync(Loan loan);
         Task<IEnumerable<UserFineDto>> GetUserFinesByEmailAsync(string email);
         Task<UserFineDto?> RevokeFineAsync(int fineId);
+        Task<UserFineDto?> PayFineAsync(string userId, int fineId);
         Task<UserFineDto> AddFineAsync(CreateFineDto fineDto);
     }
 }

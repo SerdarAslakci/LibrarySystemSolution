@@ -4,6 +4,7 @@ namespace LibrarySystem.API.RepositoryInterfaces
 {
     public interface IFineRepository
     {
+        Task<Fine?> GetFineByIdAsync(int id);
         Task<IEnumerable<Fine>> GetActiveFinesByUserIdAsync(string userId, int page, int pageSize);
         Task<IEnumerable<Fine>> GetInActiveFinesByUserIdAsync(string userId, int page, int pageSize);
         Task<Fine?> ProcessLateReturnAsync(Loan loan);

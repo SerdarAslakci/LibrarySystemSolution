@@ -58,6 +58,7 @@ namespace LibrarySystem.API.Mapper
                 .ForMember(dest => dest.FineType, opt => opt.MapFrom(src => src.FineType.Name))
                 .ForMember(dest => dest.LoanDetails, opt => opt.MapFrom(src => src.Loan))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Description))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Amount == 0 ? "Yasak Kalktı" : "Paid"))
                 .ReverseMap();
         
 

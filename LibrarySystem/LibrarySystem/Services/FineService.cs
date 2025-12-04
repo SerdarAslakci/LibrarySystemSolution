@@ -40,7 +40,7 @@ namespace LibrarySystem.API.Services
                 Amount = fineDto.amount,
                 Description = fineDto.reason,
                 IssuedDate = DateTime.Now,
-                Status = "Unpaid",
+                Status = fineDto.amount == 0 ? "Kalıcı Yasak" : "Unpaid",
                 IsActive = true
             };
 

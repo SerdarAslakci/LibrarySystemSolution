@@ -297,7 +297,7 @@ namespace LibrarySystem.API.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "İade işlemi sırasında sunucu hatası. Barkod: {Barcode}", returnBookDto.Barcode);
-                return StatusCode(500, new { message = "İade işlemi sırasında beklenmeyen bir hata oluştu.", details = ex.Message });
+                return StatusCode(500,$"İade işlemi sırasında beklenmeyen bir hata oluştu.Detaylar: {ex.Message }");
             }
 
         }

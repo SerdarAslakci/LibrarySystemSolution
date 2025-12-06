@@ -110,6 +110,7 @@ namespace LibrarySystem.API.Repositories
                 .Include(f => f.FineType)
                 .Where(f => f.UserId == userId && f.IsActive == true)
                 .OrderByDescending(f => f.IssuedDate)
+                .Skip((page - 1) * pageSize)
                 .ToListAsync();
         }
 

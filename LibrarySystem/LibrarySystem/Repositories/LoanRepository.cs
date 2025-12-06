@@ -119,6 +119,7 @@ namespace LibrarySystem.API.Repositories
                 .Include(l => l.BookCopy.Shelf)
                     .ThenInclude(s => s.Room)
                 .Where(l => l.UserId == userId && l.ActualReturnDate != null)
+                .Skip((page - 1) * pageSize)
                 .ToListAsync();
 
             return loans;

@@ -1,4 +1,6 @@
-﻿using LibrarySystem.API.DataContext;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using LibrarySystem.API.DataContext;
 using LibrarySystem.API.Dtos.BookCopyDtos;
 using LibrarySystem.API.Dtos.BookDtos;
 using LibrarySystem.API.RepositoryInterfaces;
@@ -11,9 +13,12 @@ namespace LibrarySystem.API.Repositories
     public class BookRepository : IBookRepository
     {
         private readonly AppDbContext _context;
-        public BookRepository(AppDbContext context)
+        private readonly IMapper _mapper;
+        public BookRepository(AppDbContext context,IMapper mapper)
         {
             _context = context;
+            _mapper = mapper;
+
         }
         public async Task<Book> AddBookAsync(Book book)
         {
@@ -81,7 +86,7 @@ namespace LibrarySystem.API.Repositories
             _context.BookAuthors.Remove(bookAuthor);
             await _context.SaveChangesAsync();
         }
-        public async Task<PaginatedResult<Book>> GetAllBooksAsync(BookFilterDto filterDto)
+        public async Task<PaginatedResult<BookDto>> GetAllBooksAsync(BookFilterDto filterDto)
         {
 
             IQueryable<Book> query = _context.Books
@@ -162,9 +167,10 @@ namespace LibrarySystem.API.Repositories
                 .OrderBy(b => b.Id)
                 .Skip((page - 1) * size)
                 .Take(size)
+                .ProjectTo<BookDto>(_mapper.ConfigurationProvider)
                 .ToListAsync();
 
-            return new PaginatedResult<Book>(items, totalCount, page, size);
+            return new PaginatedResult<BookDto>(items, totalCount, page, size);
         }
         public async Task<Book?> GetBookByIdAsync(int id)
         {

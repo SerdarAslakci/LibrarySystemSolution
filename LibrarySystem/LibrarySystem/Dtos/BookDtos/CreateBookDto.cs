@@ -8,6 +8,9 @@
         public int PublicationYear { get; set; }
         public string? Language { get; set; }
 
+        public string? Summary { get; set; }
+        public string? ImageUrl { get; set; }
+
         public int? AuthorId { get; set; }
         public string? AuthorFirstName { get; set; }
         public string? AuthorLastName { get; set; }

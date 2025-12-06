@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using LibrarySystem.API.Dtos.AuthorDtos;
+using LibrarySystem.API.Dtos.BookDtos;
 using LibrarySystem.API.Dtos.FineTypeDtos;
 using LibrarySystem.API.Dtos.LoanDtos;
 using LibrarySystem.API.Dtos.UserDtos;
@@ -63,6 +64,12 @@ namespace LibrarySystem.API.Mapper
         
 
             CreateMap<FineType, ReturnFineTypeDto>().ReverseMap();
+
+            CreateMap<Author, AuthorDto>();
+
+            CreateMap<BookAuthor, BookAuthorDto>();
+
+            CreateMap<Book, BookDto>().ReverseMap();
 
 
             CreateMap<Loan, LoanWithUserDetailsDto>()

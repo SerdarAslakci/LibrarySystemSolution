@@ -69,6 +69,8 @@ namespace LibrarySystem.API.Services
                 Language = dto.Language,
                 CategoryId = category.Id,
                 PublisherId = publisher.Id,
+                ImageUrl = dto.ImageUrl,
+                Summary = dto.Summary,
                 Category = category,
                 Publisher = publisher
             };
@@ -285,7 +287,7 @@ namespace LibrarySystem.API.Services
             return book;
         }
 
-        public async Task<PaginatedResult<Book>> GetAllBooksAsync(BookFilterDto filterDto)
+        public async Task<PaginatedResult<BookDto>> GetAllBooksAsync(BookFilterDto filterDto)
         {
             return await _bookRepository.GetAllBooksAsync(filterDto);
         }

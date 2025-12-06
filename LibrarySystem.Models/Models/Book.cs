@@ -14,6 +14,8 @@ namespace LibrarySystem.Models.Models
         public int PageCount { get; set; }
         public int PublicationYear { get; set; } 
         public string? Language { get; set; }
+        public string? ImageUrl { get; set; }
+        public string? Summary { get; set; }
         public int CategoryId { get; set; }
         public int PublisherId { get; set; }
         public Category? Category { get; set; }

@@ -13,7 +13,7 @@ namespace LibrarySystem.API.ServiceInterfaces
         Task<Book?> GetBookByIdAsync(int id);
         Task<Book?> GetBookWithDetailsAsync(int id);
         Task<IEnumerable<Book>?> GetBooksByNameWithDetailsAsync(string name);
-        Task<PaginatedResult<Book>> GetAllBooksAsync(BookFilterDto filterDto);
+        Task<PaginatedResult<BookDto>> GetAllBooksAsync(BookFilterDto filterDto);
         Task<IEnumerable<Book>> GetOtherBooksByAuthorAsync(int authorId, int? size, int? categoryId = null);
 
         // BookAuthor Operations

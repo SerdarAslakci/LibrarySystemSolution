@@ -32,9 +32,9 @@ namespace LibrarySystem.API.Services
             using (var rng = RandomNumberGenerator.Create())
             {
                 rng.GetBytes(randomNumber);
-                return Convert.ToBase64String(randomNumber);
-            }
-            ;
+                return await Task.FromResult(Convert.ToBase64String(randomNumber));
+            };
+            
         }
 
         public async Task<string> CreateTokenAsync(AppUser user)
